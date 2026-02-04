@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homehive/menu/menu.dart';
 import 'package:homehive/theme/tema.dart';
 
 class MyApp extends StatelessWidget {
@@ -30,7 +31,6 @@ class _MainPageState extends State<MainPage> {
       appBar: AppBar(
         backgroundColor: MiTema.bggris,
         elevation: 0,
-        leading: const Icon(Icons.menu, color: MiTema.textPrimary),
         centerTitle: true,
         title: const Text(
           'HomeHive',
@@ -44,6 +44,7 @@ class _MainPageState extends State<MainPage> {
           SizedBox(width: 12),
         ],
       ),
+      drawer: menu(context),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -90,7 +91,7 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
           ),
-          Icon(Icons.tune, color: MiTema.textamarillo),
+          Icon(Icons.filter_list, color: MiTema.textamarillo),
         ],
       ),
     );
