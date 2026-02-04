@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homehive/main/mainPage.dart';
 import 'theme/tema.dart';
 
 void main() {
@@ -15,7 +16,7 @@ class MyApp extends StatelessWidget {
       theme: MiTema.temaApp(context),
       title: 'HomeHive',
       home: Login(),
-      // routes: {'/inicio': (context) => const Mainview()},
+      routes: {'/inicio': (context) => const MainPage()},
     );
   }
 }
