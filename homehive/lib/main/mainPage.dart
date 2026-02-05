@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homehive/menu/filtro.dart';
 import 'package:homehive/menu/menu.dart';
 import 'package:homehive/theme/tema.dart';
 
@@ -44,7 +45,10 @@ class _MainPageState extends State<MainPage> {
           SizedBox(width: 12),
         ],
       ),
+
       drawer: menu(context),
+      endDrawer: filtro(context),
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -70,7 +74,7 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-  Widget _searchBar() {
+Widget _searchBar() {
     return Container(
       height: 45,
       padding: const EdgeInsets.symmetric(horizontal: 15),
@@ -80,10 +84,10 @@ class _MainPageState extends State<MainPage> {
         border: Border.all(color: MiTema.border),
       ),
       child: Row(
-        children: const [
-          Icon(Icons.search, color: MiTema.textamarillo),
-          SizedBox(width: 10),
-          Expanded(
+        children: [
+          const Icon(Icons.search, color: MiTema.textamarillo),
+          const SizedBox(width: 10),
+          const Expanded(
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Buscar',
@@ -91,11 +95,21 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
           ),
-          Icon(Icons.filter_list, color: MiTema.textamarillo),
+
+          // Botón de filtro 
+          Builder(
+            builder: (context) => IconButton(
+              icon: const Icon(Icons.filter_list, color: MiTema.textamarillo),
+              onPressed: () {
+                Scaffold.of(context).openEndDrawer();
+              },
+            ),
+          ),
         ],
       ),
     );
   }
+
 
   Widget _propiedades() {
     return Card(
@@ -112,8 +126,8 @@ class _MainPageState extends State<MainPage> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(25),
                 ),
-                child: Image.network(
-                  'https://images.unsplash.com/photo-1505691938895-1758d7feb511',
+                child: Image.asset(
+                  'assets/casa.webp',
                   height: 160,
                   width: double.infinity,
                   fit: BoxFit.cover,
