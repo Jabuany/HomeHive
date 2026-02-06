@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:homehive/menu/filtro.dart';
-import 'package:homehive/menu/menu.dart';
 import 'package:homehive/theme/tema.dart';
 
 class MyApp extends StatelessWidget {
@@ -12,19 +10,19 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'HomeHive',
       theme: MiTema.temaApp(context),
-      home: const MainPage(),
+      home: const Favorite(),
     );
   }
 }
 
-class MainPage extends StatefulWidget {
-  const MainPage({super.key});
+class Favorite extends StatefulWidget {
+  const Favorite({super.key});
 
   @override
-  State<MainPage> createState() => _MainPageState();
+  State<Favorite> createState() => _FavoriteState();
 }
 
-class _MainPageState extends State<MainPage> {
+class _FavoriteState extends State<Favorite> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -38,32 +36,25 @@ class _MainPageState extends State<MainPage> {
             color: MiTema.textPrimary,
           ),
         ),
-        actions: const [
-          Icon(Icons.notifications_none, color: MiTema.textPrimary),
-          SizedBox(width: 12),
-        ],
       ),
 
-      drawer: menu(context),
-      endDrawer: filtro(context),
 
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _searchBar(),
-              const SizedBox(height: 25),
+              const SizedBox(height: 35),
               const Text(
-                'Cuartos',
+                'Favoritos',
                 style: TextStyle(
                   fontSize: 24,
                   fontWeight: FontWeight.bold,
                   color: MiTema.textPrimary,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 40),
               _propiedades(),
             ],
           ),
@@ -72,42 +63,7 @@ class _MainPageState extends State<MainPage> {
     );
   }
 
-Widget _searchBar() {
-    return Container(
-      height: 45,
-      padding: const EdgeInsets.symmetric(horizontal: 15),
-      decoration: BoxDecoration(
-        color: MiTema.cart,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: MiTema.border),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.search, color: MiTema.textamarillo),
-          const SizedBox(width: 10),
-          const Expanded(
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Buscar',
-                border: InputBorder.none,
-              ),
-            ),
-          ),
-
-          // Botón de filtro 
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.filter_list, color: MiTema.textamarillo),
-              onPressed: () {
-                Scaffold.of(context).openEndDrawer();
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
+ 
 
   Widget _propiedades() {
     return Card(
@@ -141,8 +97,8 @@ Widget _searchBar() {
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
-                    Icons.favorite_border,
-                    color: MiTema.azulPrincipal,
+                    Icons.favorite,
+                    color: MiTema.rojo,
                   ),
                 ),
               ),
@@ -174,24 +130,6 @@ Widget _searchBar() {
                   style: TextStyle(fontSize: 14, color: MiTema.textamarillo),
                 ),
                 const SizedBox(height: 15),
-
-                // Botón
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: MiTema.azulPrincipal,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                    ),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed('/vermas');
-                    },
-                    child: const Text('Ver más'),
-                  ),
-                ),
               ],
             ),
           ),

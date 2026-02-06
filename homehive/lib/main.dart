@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:homehive/inquilino/favoritos.dart';
+import 'package:homehive/main/chat.dart';
 import 'package:homehive/main/mainPage.dart';
+import 'package:homehive/main/vermas.dart';
 import 'theme/tema.dart';
 
 void main() {
@@ -16,7 +19,13 @@ class MyApp extends StatelessWidget {
       theme: MiTema.temaApp(context),
       title: 'HomeHive',
       home: Login(),
-      routes: {'/inicio': (context) => const MainPage()},
+      routes: {
+        '/inicio': (context) => const MainPage(),
+        '/favoritos': (context) => const Favorite(),
+        '/vermas': (context) => const VerMas(),
+        '/chat': (context) => const Chat(),
+      },
+    
     );
   }
 }
