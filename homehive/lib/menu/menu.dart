@@ -1,5 +1,7 @@
 
 import 'package:flutter/material.dart';
+import 'package:homehive/views/profile.dart';
+
 
 Drawer menu(BuildContext context) {
   return Drawer(
@@ -8,7 +10,12 @@ Drawer menu(BuildContext context) {
         const SizedBox(height: 50),
         Text('HomeHive', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
         _perfil(),
+        
         const SizedBox(height: 20),
+
+        _opcion(Icons.person, 'Perfil', (){
+          Navigator.push(context, MaterialPageRoute(builder: (context)=> const Profile()));
+        }),
         _opcion(Icons.chat, 'Chat', () {
           Navigator.of(context).pushNamed('/chat');
         }),
@@ -39,9 +46,10 @@ Widget _perfil() {
         backgroundImage: AssetImage('assets/images/perfil.jpg'),
       ),
       const SizedBox(height: 10),
-      const Text(
+      Text(
         'Pauline Lenoir',
-        style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
+        
       ),
       const SizedBox(height: 5),
     ],
