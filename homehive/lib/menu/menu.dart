@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:homehive/views/profile.dart';
 
 
+
+
 Drawer menu(BuildContext context) {
   return Drawer(
     child: Column(
@@ -28,7 +30,6 @@ Drawer menu(BuildContext context) {
         _opcion(Icons.favorite, 'Favoritos', () {
           Navigator.of(context).pushNamed('/favoritos');
         }),
-        const Spacer(),
         _opcion(Icons.exit_to_app, 'Salir', () {
           Navigator.of(context).pushNamed('/login');
         }),
@@ -41,10 +42,7 @@ Drawer menu(BuildContext context) {
 Widget _perfil() {
   return Column(
     children: [
-      CircleAvatar(
-        radius: 50,
-        backgroundImage: AssetImage('assets/images/perfil.jpg'),
-      ),
+      Icon(Icons.person_2, size: 90),
       const SizedBox(height: 10),
       Text(
         'Pauline Lenoir',
