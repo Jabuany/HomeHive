@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:homehive/menu/filtro.dart';
 import 'package:homehive/menu/menu.dart';
 import 'package:homehive/theme/tema.dart';
+import 'package:homehive/views/notificaciones_solicitudes.dart';
+import 'package:homehive/views/rentar.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -38,9 +40,15 @@ class _MainPageState extends State<MainPage> {
             color: MiTema.textPrimary,
           ),
         ),
-        actions: const [
-          Icon(Icons.notifications_none, color: MiTema.textPrimary),
-          SizedBox(width: 12),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: MiTema.textPrimary),
+            onPressed: () {
+              Navigator.push( context, MaterialPageRoute(builder: (context) => const Solicitudes(),
+                ),
+              );
+            },
+          ),
         ],
       ),
 
@@ -187,9 +195,9 @@ Widget _searchBar() {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.of(context).pushNamed('/vermas');
-                    },
-                    child: const Text('Ver más'),
+                      Navigator.push(context, MaterialPageRoute( builder: (context) => const Rentar(),),
+                      );},
+                    child: const Text('Rentar'),
                   ),
                 ),
               ],
