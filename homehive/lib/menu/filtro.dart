@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:homehive/theme/tema.dart';
+import 'package:homehive/main/FiltroPage.dart'; 
+
+final TextEditingController desdeController = TextEditingController();
+final TextEditingController hastaController = TextEditingController();
 
 Drawer filtro(BuildContext context) {
   return Drawer(
@@ -15,15 +19,11 @@ Drawer filtro(BuildContext context) {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Flecha atrás
             IconButton(
               icon: const Icon(Icons.arrow_back),
               onPressed: () => Navigator.pop(context),
             ),
-
             const SizedBox(height: 10),
-
-            //Título
             const Center(
               child: Text(
                 'Tipo de inmueble',
@@ -34,56 +34,78 @@ Drawer filtro(BuildContext context) {
                 ),
               ),
             ),
-
             const SizedBox(height: 25),
-
-            // Botones de tipo
             _botonTipo('Cuarto'),
             const SizedBox(height: 15),
             _botonTipo('Casa'),
             const SizedBox(height: 15),
             _botonTipo('Departamento'),
-
             const SizedBox(height: 30),
-
-            // Precio
             const Text(
               'Precio',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
-
             const SizedBox(height: 15),
-
             Row(
               children: [
-                _campoPrecio('Desde'),
+                _campoPrecio('Desde', desdeController),
                 const SizedBox(width: 15),
-                _campoPrecio('Hasta'),
+                _campoPrecio('Hasta', hastaController),
               ],
             ),
-
             const Spacer(),
-
-            // Botón filtrar
             Center(
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF0B5D46),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 40,
-                    vertical: 12,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
+                  backgroundColor: const Color(0xFF0B5D46),
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  String precioMin = desdeController.text;
+                  String precioMax = hastaController.text;
+
+                  Navigator.pop(context);
+
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => FiltroPage(
+                        min: precioMin,
+                        max: precioMax,
+                      ),
+                    ),
+                  );
+                },
                 child: const Text('Filtrar', style: TextStyle(fontSize: 18, color: Colors.white)),
               ),
             ),
-
             const SizedBox(height: 20),
           ],
+        ),
+      ),
+    ),
+  );
+}
+
+Widget _campoPrecio(String hint, TextEditingController controller) {
+  return Expanded(
+    child: TextField(
+      controller: controller, // Asignamos el controlador
+      keyboardType: TextInputType.number,
+      decoration: InputDecoration(
+        hintText: hint,
+        suffixText: 'MN',
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: const BorderSide(color: MiTema.border),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(20),
+          borderSide: const BorderSide(color: MiTema.border),
         ),
       ),
     ),
@@ -96,39 +118,12 @@ Widget _botonTipo(String texto) {
     height: 45,
     child: ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF0B5D46), 
+        backgroundColor: const Color(0xFF0B5D46),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
       ),
-      onPressed: () {},
+      onPressed: () {
+      },
       child: Text(texto, style: const TextStyle(color: Colors.white)),
     ),
   );
 }
-
-Widget _campoPrecio(String hint) {
-  return Expanded(
-    child: TextField(
-      keyboardType: TextInputType.number,
-      decoration: InputDecoration(
-        hintText: hint,
-        suffixText: 'MN',
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 15,
-          vertical: 12,
-        ),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: MiTema.border),
-        ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20),
-          borderSide: BorderSide(color: MiTema.border),
-        ),
-      ),
-    ),
-  );
-}
-
-

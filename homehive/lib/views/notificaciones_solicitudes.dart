@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:homehive/theme/tema.dart';
-import 'package:homehive/views/solicitudes.dart';
+import 'package:homehive/views/solicitudes.dart'; 
+import 'package:homehive/menu/menu.dart'; 
 
-class Solicitudes extends StatefulWidget {
-  const Solicitudes({Key? key}) : super(key: key);
+class NotificacionesSolicitudes extends StatefulWidget {
+  const NotificacionesSolicitudes({Key? key}) : super(key: key);
 
   @override
-  State<Solicitudes> createState() => _SolicitudesState();
+  State<NotificacionesSolicitudes> createState() => _NotificacionesSolicitudesState();
 }
 
-class _SolicitudesState extends State<Solicitudes> {
+class _NotificacionesSolicitudesState extends State<NotificacionesSolicitudes> {  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+
   final List<Map<String, String>> solicitudesList = [
     {
       'nombre': 'Pauline Lenoir',
@@ -34,14 +36,16 @@ class _SolicitudesState extends State<Solicitudes> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _scaffoldKey, 
       backgroundColor: MiTema.bggris,
+      drawer: menu(context), 
       appBar: AppBar(
         backgroundColor: MiTema.bggris,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.menu),
+          icon: const Icon(Icons.menu, color: MiTema.textPrimary),
           onPressed: () {
-            Scaffold.of(context).openDrawer();
+            _scaffoldKey.currentState?.openDrawer();
           },
         ),
         title: const Text(
@@ -53,12 +57,6 @@ class _SolicitudesState extends State<Solicitudes> {
           ),
         ),
         centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {},
-          ),
-        ],
       ),
       body: Column(
         children: [
@@ -100,13 +98,13 @@ class _SolicitudesState extends State<Solicitudes> {
                           Container(
                             width: 60,
                             height: 60,
-                            decoration: BoxDecoration(
+                            decoration: const BoxDecoration(
                               shape: BoxShape.circle,
-                              color: MiTema.gris,
+                              color: Colors.grey,
                             ),
                             child: const Icon(
                               Icons.person,
-                              color: Colors.grey,
+                              color: Colors.white,
                               size: 30,
                             ),
                           ),
@@ -117,7 +115,7 @@ class _SolicitudesState extends State<Solicitudes> {
                               children: [
                                 Text(
                                   solicitud['nombre']!,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: MiTema.textPrimary,
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
@@ -126,7 +124,7 @@ class _SolicitudesState extends State<Solicitudes> {
                                 const SizedBox(height: 4),
                                 Text(
                                   solicitud['tipo']!,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: MiTema.textamarillo,
                                     fontSize: 12,
                                   ),
@@ -134,7 +132,7 @@ class _SolicitudesState extends State<Solicitudes> {
                                 const SizedBox(height: 8),
                                 Text(
                                   solicitud['propiedad']!,
-                                  style: TextStyle(
+                                  style: const TextStyle(
                                     color: MiTema.textPrimary,
                                     fontSize: 14,
                                     fontWeight: FontWeight.w500,
@@ -146,26 +144,20 @@ class _SolicitudesState extends State<Solicitudes> {
                           ElevatedButton(
                             onPressed: () {
                               Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const VerSolicitud(),
-                              ));
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const VerSolicitud(),
+                                ),
+                              );
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: MiTema.azulPrincipal,
                               foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 20,
-                                vertical: 10,
-                              ),
                               shape: RoundedRectangleBorder(
                                 borderRadius: BorderRadius.circular(8),
                               ),
                             ),
-                            child: const Text(
-                              'Ver',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
+                            child: const Text('Ver'),
                           ),
                         ],
                       ),
@@ -173,13 +165,6 @@ class _SolicitudesState extends State<Solicitudes> {
                   ),
                 );
               },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Text(
-              '©2026 DevSquad',
-              style: TextStyle(color: MiTema.textamarillo, fontSize: 12),
             ),
           ),
         ],
