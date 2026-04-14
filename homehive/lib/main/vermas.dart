@@ -1,342 +1,256 @@
 import 'package:flutter/material.dart';
+import 'package:homehive/config/config.dart';
+import 'package:homehive/services/users.dart';
 import 'package:homehive/theme/tema.dart';
-import 'package:homehive/menu/menu.dart';
-import 'package:homehive/views/rentar.dart'; 
+import 'package:homehive/views/rentar.dart';
+import 'package:homehive/services/reseñaserv.dart';
 
 class VerMas extends StatefulWidget {
-  const VerMas({super.key});
+  final dynamic prop;
+
+  const VerMas({super.key, required this.prop});
 
   @override
   State<VerMas> createState() => _VerMasState();
+  
 }
 
 class _VerMasState extends State<VerMas> {
-  bool _estaEditando = false;
-  int? _indexEditando;
-  final TextEditingController _controllerEditar = TextEditingController();
+  late Future<List<dynamic>> reviews;
+  final TextEditingController _controller = TextEditingController();
 
-  final List<Map<String, dynamic>> _comentarios = [
-    {'nombre': 'Paola Lorenzo', 'comentario': 'Buen servicio', 'fecha': '19 de octubre de 2023', 'esPropio': true},
-    {'nombre': 'Sarah Lenoir', 'comentario': 'Excelente', 'fecha': '12 de septiembre de 2023', 'esPropio': true}, 
-  ];
+  @override
+  void initState() {
+    super.initState();
+    cargarReviews();
+  }
 
-  void _borrarComentario(int index) {
+  void cargarReviews() {
+    reviews = ResenaService.getResenas(widget.prop['id']);
+  }
+
+  void enviarComentario() async {
+    if (_controller.text.isEmpty) return;
+
+    await ResenaService.crearResena(
+      propiedadId: widget.prop['id'],
+      userId: 1,
+      rating: 5,
+      comentario: _controller.text,
+    );
+
+    _controller.clear();
+
     setState(() {
-      _comentarios.removeAt(index);
+      cargarReviews();
     });
   }
 
-  void _abrirEdicion(int index) {
-    setState(() {
-      _estaEditando = true;
-      _indexEditando = index;
-      _controllerEditar.text = _comentarios[index]['comentario'];
-    });
-  }
+  void eliminar(int id) async {
+    await ResenaService.eliminarResena(id);
 
-  void _guardarEdicion() {
-    if (_indexEditando != null) {
-      setState(() {
-        _comentarios[_indexEditando!]['comentario'] = _controllerEditar.text;
-        _estaEditando = false;
-      });
-    }
+    setState(() {
+      cargarReviews();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final prop = widget.prop;
+    bool esPropietario = UserService.currentUser?['role'] == 'propietario';
+
+
     return Scaffold(
-      drawer: menu(context),
-      appBar: AppBar(
-        elevation: 0,
-        leading: Builder(
-          builder: (context) => IconButton(
-            icon: const Icon(Icons.menu),
-            onPressed: () => Scaffold.of(context).openDrawer(),
+      appBar: AppBar(title: const Text('HomeHive'), centerTitle: true),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(12),
+        child: Card(
+          color: MiTema.cart,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(25),
           ),
-        ),
-        title: const Text(
-          'HomeHive',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_none),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: _detalleCard(context),
-          ),
-          if (_estaEditando) _panelEditarComentario(),
-        ],
-      ),
-    );
-  }
-
-  Widget _panelEditarComentario() {
-    return Container(
-      color: Colors.black54,
-      alignment: Alignment.center,
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 24),
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(25),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text('Editar Comentario', 
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                IconButton(
-                  icon: const Icon(Icons.cancel_outlined, color: Colors.black),
-                  onPressed: () => setState(() => _estaEditando = false),
-                ),
-              ],
-            ),
-            const Divider(),
-            TextField(
-              controller: _controllerEditar,
-              decoration: InputDecoration(
-                hintText: 'Escribe tu comentario...',
-                border: const UnderlineInputBorder(),
-                suffixIcon: IconButton(
-                  icon: const Icon(Icons.send),
-                  onPressed: _guardarEdicion,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: MiTema.bggris,
-                borderRadius: BorderRadius.circular(15),
-              ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Asigne una calificación', style: TextStyle(color: Colors.black54)),
-                  Icon(Icons.keyboard_arrow_down),
-                ],
-              ),
-            ),
-            const SizedBox(height: 10),
-            Column(
-              children: List.generate(5, (index) {
-                int estrellas = 5 - index;
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 2),
-                  child: Row(
-                    children: [
-                      ...List.generate(estrellas, (_) => const Icon(Icons.star, size: 16)),
-                      const SizedBox(width: 5),
-                      Text('($estrellas)'),
-                    ],
-                  ),
-                );
-              }),
-            )
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _detalleCard(BuildContext context) {
-    return Card(
-      color: MiTema.cart,
-      elevation: 6,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Corazón Urbano',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: MiTema.textPrimary),
-                ),
-                const Icon(Icons.favorite_border, color: MiTema.textPrimary),
-              ],
-            ),
-          ),
-          Stack(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(18),
-                child: Image.asset(
-                  'assets/casa.webp',
-                  height: 220,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) => Container(height: 220, color: Colors.grey),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Row(
+                  children: [
+                    Text(
+                      prop['titulo'] ?? '',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              Positioned(
-                top: 12,
-                left: 12,
-                child: _iconoCircular(Icons.arrow_back, () => Navigator.pop(context)),
+
+              const Divider(),
+
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: prop['imagenes'] != null
+                      ? Image.network(
+                          "${Config.baseUrl}/storage/${prop['imagenes'][0]['ruta']}",
+                          height: 160,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        )
+                      : Image.asset(
+                          'assets/casa.webp',
+                          height: 160,
+                          width: double.infinity,
+                          fit: BoxFit.cover,
+                        ),
+                ),
+              ),
+
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '\$${prop['precio']}',
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+
+                    const SizedBox(height: 15),
+
+                    _seccion('Descripción', prop['descripcion'] ?? ''),
+                    _seccion('Servicios', prop['servicio'] ?? ''),
+                    _seccion('Cercanías', prop['cercanias'] ?? ''),
+                    _seccion(
+                      'Ubicación',
+                      'Barrio: ${prop['barrio']['nombre']}, ${prop['calle']}',
+                    ),
+
+                    const SizedBox(height: 20),
+
+                    const Text(
+                      'Comentarios',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+
+                    const SizedBox(height: 10),
+                    FutureBuilder<List<dynamic>>(
+                      future: reviews,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        }
+
+                        if (snapshot.hasError) {
+                          return Text(snapshot.error.toString());
+                        }
+
+                        final data = snapshot.data ?? [];
+
+                        if (data.isEmpty) {
+                          return const Text('No hay comentarios');
+                        }
+                        return Column(
+                          children: data.map((r) {
+                            return _comentarioUI(r);
+                          }).toList(),
+                        );
+                      },
+                    ),
+
+                    const SizedBox(height: 10),
+                    if (!esPropietario) _inputComentario(),
+
+                    const SizedBox(height: 20),  
+
+                    if (!esPropietario)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 50,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: MiTema.azulPrincipal,
+                          ),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (_) => const Rentar()),
+                            );
+                          },
+                          child: const Text(
+                            'Rentar',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                _seccion('Descripción', 'Casa moderna con excelente iluminación, ideal para estancias cortas.'),
-                _seccion('Servicios', 'WiFi • Aire acondicionado • Cocina equipada'),
-                _seccion('Ubicación', 'A 5 minutos del centro histórico'),
-                const Divider(height: 30),
-                _seccionMapa(),
-                const SizedBox(height: 20),
-                _seccionComentarios(),
-                const SizedBox(height: 30),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () {
-                      // 2. IMPLEMENTACIÓN DE LA NAVEGACIÓN
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => const Rentar()),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: MiTema.azulPrincipal,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
-                    child: const Text(
-                      'Rentar',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _seccion(String titulo, String texto) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(titulo, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: MiTema.textPrimary)),
+          Text(titulo, style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
-          Text(texto, style: const TextStyle(fontSize: 14, color: MiTema.textPrimary)),
+          Text(texto),
         ],
       ),
     );
   }
 
-  Widget _seccionMapa() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Mapa', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MiTema.textPrimary)),
-        const SizedBox(height: 10),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(15),
-          child: Image.asset(
-            'assets/Mapa.png',
-            height: 180,
-            width: double.infinity,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
-              height: 180,
-              color: MiTema.bggris,
-              child: const Center(child: Icon(Icons.map_outlined, size: 50)),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _seccionComentarios() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text('Comentarios', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: MiTema.textPrimary)),
-        const SizedBox(height: 15),
-        ..._comentarios.asMap().entries.map((entry) {
-          int idx = entry.key;
-          var datos = entry.value;
-          return _comentarioItem(
-            datos['nombre'], 
-            datos['comentario'], 
-            datos['fecha'], 
-            datos['esPropio'],
-            () => _borrarComentario(idx),
-            () => _abrirEdicion(idx),
-          );
-        }).toList(),
-        const SizedBox(height: 15),
-        _inputComentario(),
-      ],
-    );
-  }
-
-  Widget _comentarioItem(String nombre, String comentario, String fecha, bool esPropio, VoidCallback onBorrar, VoidCallback onEditar) {
+  Widget _comentarioUI(dynamic r) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: MiTema.border),
+        border: Border.all(color: Colors.black12),
+        borderRadius: BorderRadius.circular(15),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const CircleAvatar(backgroundColor: MiTema.azulPrincipal, child: Icon(Icons.person, color: Colors.white)),
-          const SizedBox(width: 12),
+          const CircleAvatar(child: Icon(Icons.person)),
+          const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(children: List.generate(5, (index) => const Icon(Icons.star, size: 14, color: Colors.amber))),
-                Text(nombre, style: const TextStyle(fontWeight: FontWeight.bold)),
-                Text(comentario, style: const TextStyle(color: Colors.black54)),
-                Text(fecha, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                Row(
+                  children: List.generate(
+                    r['rating'] ?? 5,
+                    (index) =>
+                        const Icon(Icons.star, size: 14, color: Colors.amber),
+                  ),
+                ),
+Text(
+                  r['user']?['name'] ?? 'Usuario',
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                Text(r['comentario'] ?? ''),
               ],
             ),
           ),
-          if (esPropio) 
-            Row(
-              children: [
-                GestureDetector(
-                  onTap: onEditar,
-                  child: const Icon(Icons.edit, size: 18, color: Colors.black54),
-                ),
-                const SizedBox(width: 8),
-                GestureDetector(
-                  onTap: onBorrar,
-                  child: const Icon(Icons.delete_outline, size: 18, color: Colors.redAccent),
-                ),
-              ],
-            ),
+          IconButton(
+            icon: const Icon(Icons.delete, color: Colors.red),
+            onPressed: () => eliminar(r['id']),
+          ),
         ],
       ),
     );
@@ -346,29 +260,22 @@ class _VerMasState extends State<VerMas> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       decoration: BoxDecoration(
-        color: MiTema.gris.withOpacity(0.3),
+        color: Colors.grey[200],
         borderRadius: BorderRadius.circular(30),
       ),
-      child: const Row(
+      child: Row(
         children: [
           Expanded(
             child: TextField(
-              decoration: InputDecoration(hintText: 'Comentar', border: InputBorder.none),
+              controller: _controller,
+              decoration: const InputDecoration(
+                hintText: 'Comentar',
+                border: InputBorder.none,
+              ),
             ),
           ),
-          Icon(Icons.send_outlined),
+          IconButton(icon: const Icon(Icons.send), onPressed: enviarComentario),
         ],
-      ),
-    );
-  }
-
-  Widget _iconoCircular(IconData icono, VoidCallback onTap) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(6),
-        decoration: const BoxDecoration(color: Colors.white, shape: BoxShape.circle),
-        child: Icon(icono, color: MiTema.textPrimary),
       ),
     );
   }

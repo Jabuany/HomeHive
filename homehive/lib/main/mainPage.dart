@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:homehive/config/config.dart';
 import 'package:homehive/menu/filtro.dart';
 import 'package:homehive/menu/menu.dart';
 import 'package:homehive/services/propserv.dart';
 import 'package:homehive/theme/tema.dart';
+import 'package:homehive/main/vermas.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -40,17 +42,12 @@ class _MainPageState extends State<MainPage> {
           ),
         ),
         actions: const [
-          // Quitamos el IconButton y la navegación, dejamos solo el Icon
           Icon(Icons.notifications_none, color: MiTema.textPrimary),
-          SizedBox(
-            width: 20,
-          ), // Ajustado para que el icono no quede pegado al borde
+          SizedBox(width: 20),
         ],
       ),
-
       drawer: menu(context),
       endDrawer: filtro(context),
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -64,12 +61,10 @@ class _MainPageState extends State<MainPage> {
                 }
 
                 if (snapshot.hasError) {
-                  print(" ERROR REAL: ${snapshot.error}");
                   return Center(
                     child: Text(
-                      'Error al cargar propiedades\n${snapshot.error}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.red, fontSize: 16),
+                      snapshot.error.toString(),
+                      style: const TextStyle(color: Colors.red),
                     ),
                   );
                 }
@@ -162,12 +157,19 @@ class _MainPageState extends State<MainPage> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(25),
                 ),
-                child: Image.asset(
-                  'assets/casa.webp',
-                  height: 160,
-                  width: double.infinity,
-                  fit: BoxFit.cover,
-                ),
+                child: prop['imagenes'] != null
+                    ? Image.network(
+                        "${Config.baseUrl}/storage/${prop['imagenes'][0]['ruta']}",
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      )
+                    : Image.asset(
+                        'assets/casa.webp',
+                        height: 160,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
               ),
               Positioned(
                 top: 12,
@@ -193,7 +195,7 @@ class _MainPageState extends State<MainPage> {
               children: [
                 Text(
                   '\$${prop["precio"]}',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     color: MiTema.textPrimary,
@@ -202,12 +204,18 @@ class _MainPageState extends State<MainPage> {
                 const SizedBox(height: 6),
                 Text(
                   prop["titulo"] ?? '',
-                  style: TextStyle(fontSize: 16, color: MiTema.textPrimary),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    color: MiTema.textPrimary,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  '${prop["barrio"]}, ${prop["calle"]}',
-                  style: TextStyle(fontSize: 14, color: MiTema.textamarillo),
+                  'Barrio: ${prop["barrio"]?["nombre"]}, ${prop["calle"]}',
+                  style: const TextStyle(
+                    fontSize: 14,
+                    color: MiTema.textamarillo,
+                  ),
                 ),
                 const SizedBox(height: 15),
                 SizedBox(
@@ -221,7 +229,10 @@ class _MainPageState extends State<MainPage> {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.of(context).pushNamed('/vermas');
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => VerMas(prop: prop)),
+                      );
                     },
                     child: const Text('Ver más'),
                   ),
@@ -236,26 +247,27 @@ class _MainPageState extends State<MainPage> {
 
   Widget _seccionpropiedades(String titulo, List lista) {
     if (lista.isEmpty) return const SizedBox();
-    return Column( 
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           titulo,
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: MiTema.textPrimary),
+          style: const TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: MiTema.textPrimary,
+          ),
         ),
         const SizedBox(height: 20),
         SizedBox(
-          height: 340,
+          height: 360,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             itemCount: lista.length,
             itemBuilder: (context, index) {
               return Padding(
                 padding: const EdgeInsets.only(right: 15),
-                child: SizedBox(
-                  width: 250,
-                  child: _propiedades(lista[index]),
-                ),
+                child: SizedBox(width: 250, child: _propiedades(lista[index])),
               );
             },
           ),
