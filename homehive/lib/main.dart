@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:homehive/config/config.dart';
 import 'package:homehive/inquilino/favoritos.dart';
 import 'package:homehive/main/chat.dart';
 import 'package:homehive/main/mainPage.dart';
-import 'package:homehive/main/vermas.dart';
+import 'package:homehive/main/solicitudes.dart';
+import 'package:homehive/propietario/mispropiedades.dart';
 import 'package:homehive/services/users.dart';
 import 'package:homehive/views/notificaciones_solicitudes.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:app_links/app_links.dart';
 import 'theme/tema.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,9 +29,10 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const Login(),
         '/inicio': (context) => const MainPage(),
         '/favoritos': (context) => const Favorite(),
-        '/vermas': (context) => const VerMas(),
         '/chat': (context) => const Chat(),
         '/notificaciones': (context) => const NotificacionesSolicitudes(),
+        '/mispropiedades': (context) => const MisPropiedades(),
+        '/solicitudes': (context) => const MisSolicitudesPage(),
       },
     );
   }
@@ -44,6 +48,29 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final appLinks = AppLinks();
+
+  @override
+  void initState() {
+    super.initState();
+    initDeepLinks();
+  }
+
+  void initDeepLinks() {
+    appLinks.uriLinkStream.listen((uri) async {
+      if (uri.host == 'auth') {
+        final token = uri.queryParameters['token'];
+
+        if (token != null) {
+          print("Token recibido: $token");
+
+          await UserService.guardarToken(token);
+
+          Navigator.of(context).pushReplacementNamed('/inicio');
+        }
+      }
+    });
+  }
 
   bool _isLoading = false;
 
@@ -63,34 +90,22 @@ class _LoginState extends State<Login> {
     try {
       final response = await UserService.login(email, password);
 
-      if (response['success'] == true) {
-        final token = response['data']['token'];
-        final prefs = await SharedPreferences.getInstance();
+      // El servicio ya guarda token y usuario
+      final user = response['data']['user'];
 
-        //esto guarda el token y el usuario en la clase UserService para que esté disponible globalmente, esto es nos va a servir para el menú en el drawe, en la modificación de datos del usuario y en el chat.
-        UserService.token = token;
-        UserService.currentUser = response['data']['user'];
+      print("USER: $user");
 
-        await prefs.setString('token', token);
-        final user = response['data']['user'];
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Inicio de sesión exitoso'),
+          backgroundColor: Colors.green,
+        ),
+      );
 
-        print("TOKEN: $token");
-        print("USER: $user");
-
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Inicio de sesión exitoso'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        Navigator.of(context).pushReplacementNamed('/inicio');
-      } else {
-        _mostrarError('Credenciales incorrectas');
-      }
+      Navigator.of(context).pushReplacementNamed('/inicio');
     } catch (e) {
-      print("ERROR COMPLETO: $e");
-      _mostrarError('Error: $e');
+      print("ERROR: $e");
+      _mostrarError('Credenciales incorrectas o error de conexión');
     } finally {
       setState(() {
         _isLoading = false;
@@ -169,12 +184,18 @@ class _LoginState extends State<Login> {
               '¿No tienes una cuenta?',
               style: TextStyle(color: MiTema.textamarillo, fontSize: 18),
             ),
-            Text(
-              'Regístrate aquí',
-              style: TextStyle(
-                color: MiTema.azulPrincipal,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+            GestureDetector(
+              onTap: () async {
+                final url = Uri.parse('${Config.baseUrl}register?from=app');
+                await launchUrl(url, mode: LaunchMode.externalApplication);
+              },
+              child: Text(
+                'Regístrate aquí',
+                style: TextStyle(
+                  color: MiTema.azulPrincipal,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
             const SizedBox(height: 40),

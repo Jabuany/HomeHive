@@ -22,9 +22,17 @@ Drawer menu(BuildContext context) {
         _opcion(Icons.help, 'Ayuda', () {
           Navigator.of(context).pushNamed('/');
         }),
+        if (UserService.currentUser?['role'] == 'inquilino') 
         _opcion(Icons.favorite, 'Favoritos', () {
           Navigator.of(context).pushNamed('/favoritos');
         }),
+        _opcion(Icons.request_quote, 'Solicitudes', () {
+          Navigator.of(context).pushNamed('/solicitudes');
+        }),
+        if (UserService.currentUser?['role'] == 'propietario')
+          _opcion(Icons.home, 'Mis propiedades', () {
+            Navigator.of(context).pushNamed('/mispropiedades');
+          }),
         _opcion(Icons.exit_to_app, 'Salir', () async {
           try {
             await UserService.logout();
