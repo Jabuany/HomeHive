@@ -168,14 +168,14 @@ class _LoginState extends State<Login> {
               'Correo o Usuario',
               _emailController,
               false,
-              'emailField',
+              'login_email',
             ),
             const SizedBox(height: 20),
             _buildInputField(
               'Contraseña',
               _passwordController,
               true,
-              'passwordField',
+              'login_password',
             ),
             const SizedBox(height: 30),
             _botoniniciosesion(),
@@ -219,7 +219,7 @@ class _LoginState extends State<Login> {
         border: Border.all(color: MiTema.border),
       ),
       child: TextField(
-        key: Key(keyName),
+        key: Key(keyName), // 👈 ESTE es el importante
         controller: controller,
         obscureText: isPassword,
         decoration: InputDecoration(
@@ -237,7 +237,7 @@ class _LoginState extends State<Login> {
 
   Widget _botoniniciosesion() {
     return ElevatedButton(
-      key: const Key('loginButton'),
+      key: const Key('login_button'),
       onPressed: _isLoading ? null : _ingresar,
       style: ElevatedButton.styleFrom(
         backgroundColor: MiTema.azulPrincipal,

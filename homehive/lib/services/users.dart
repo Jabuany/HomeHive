@@ -67,24 +67,26 @@ class UserService {
 
   // LOGOUT
   static Future<void> logout() async {
-    final prefs = await SharedPreferences.getInstance();
+    try {
+      String tokenActual = await obtenerToken();
 
-    String tokenActual = await obtenerToken();
-
-    final response = await http.post(
-      Uri.parse("$baseUrl/logout"),
-      headers: {
-        "Accept": "application/json",
-        "Authorization": "Bearer $tokenActual",
-      },
-    );
-
-    if (response.statusCode == 200) {
+      try {
+        await http.post(
+          Uri.parse("$baseUrl/logout"),
+          headers: {
+            "Accept": "application/json",
+            "Authorization": "Bearer $tokenActual",
+          },
+        );
+      } catch (e) {
+        print("Logout API error ignorado: $e");
+      }
+    } finally {
+      final prefs = await SharedPreferences.getInstance();
       await prefs.remove('token');
+
       token = null;
       currentUser = null;
-    } else {
-      throw Exception('Error al cerrar sesión');
     }
   }
 
