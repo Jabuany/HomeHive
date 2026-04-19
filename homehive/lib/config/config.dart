@@ -1,5 +1,5 @@
 class Config {
-  static const String baseUrl = 'http://82.25.91.145/';
+  static const String baseUrl = 'https://homehive.site/';
 
-  static const String baseApiUrl = 'http://82.25.91.145/api';
+  static const String baseApiUrl = 'https://homehive.site/api';
 }

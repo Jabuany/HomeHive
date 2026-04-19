@@ -13,11 +13,6 @@ class MisPropiedades extends StatefulWidget {
 }
 
 class _MisPropiedadesState extends State<MisPropiedades> {
-  Future<String> _getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token') ?? '';
-  }
-
   late Future<List<dynamic>> futurePropiedades;
 
   @override
@@ -26,9 +21,20 @@ class _MisPropiedadesState extends State<MisPropiedades> {
     futurePropiedades = _cargar();
   }
 
+  Future<String> _getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString('token') ?? '';
+  }
+
   Future<List<dynamic>> _cargar() async {
-    String token = await _getToken();
+    final token = await _getToken();
     return PropiedadService.getMisPropiedades(token);
+  }
+
+  void _recargar() {
+    setState(() {
+      futurePropiedades = _cargar();
+    });
   }
 
   @override
@@ -55,7 +61,11 @@ class _MisPropiedadesState extends State<MisPropiedades> {
               }
 
               if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const Center(child: Text('No tienes propiedades. Para publicar una, visite nuestra página web'));
+                return const Center(
+                  child: Text(
+                    'No tienes propiedades. Para publicar una, visita nuestra página web',
+                  ),
+                );
               }
 
               final propiedades = snapshot.data!;
@@ -65,7 +75,7 @@ class _MisPropiedadesState extends State<MisPropiedades> {
                 itemBuilder: (context, index) {
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 15),
-                    child: _propiedades(propiedades[index]),
+                    child: _propiedadCard(propiedades[index]),
                   );
                 },
               );
@@ -76,8 +86,7 @@ class _MisPropiedadesState extends State<MisPropiedades> {
     );
   }
 
-  
-  Widget _propiedades(dynamic prop) {
+  Widget _propiedadCard(dynamic prop) {
     return Card(
       color: MiTema.cart,
       elevation: 6,
@@ -85,7 +94,6 @@ class _MisPropiedadesState extends State<MisPropiedades> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🖼 Imagen
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
             child: prop['imagen'] != null
@@ -130,7 +138,7 @@ class _MisPropiedadesState extends State<MisPropiedades> {
                 const SizedBox(height: 4),
 
                 Text(
-                  'Barrio: ${prop["barrio"]?["nombre"]}, ${prop["calle"]}',
+                  'Barrio: ${prop["barrio"]?["nombre"] ?? ''}, ${prop["calle"] ?? ''}',
                   style: const TextStyle(
                     fontSize: 14,
                     color: MiTema.textamarillo,
@@ -141,17 +149,18 @@ class _MisPropiedadesState extends State<MisPropiedades> {
 
                 Row(
                   children: [
-                    // Editar
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {
-                            Navigator.push(
+                        key: ValueKey('btn_editar_${prop["id"]}'),
+                        onPressed: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  EditarPropiedadPage(prop: prop),
+                              builder: (_) => EditarPropiedadPage(prop: prop),
                             ),
                           );
+
+                          _recargar();
                         },
                         icon: const Icon(Icons.edit),
                         label: const Text('Editar'),
@@ -160,10 +169,10 @@ class _MisPropiedadesState extends State<MisPropiedades> {
 
                     const SizedBox(width: 10),
 
-                    // Comentarios
                     Expanded(
                       child: OutlinedButton.icon(
-                        onPressed: () {},
+                        onPressed: () {
+                        },
                         icon: const Icon(Icons.comment),
                         label: const Text('Comentarios'),
                       ),
@@ -173,10 +182,10 @@ class _MisPropiedadesState extends State<MisPropiedades> {
 
                 const SizedBox(height: 10),
 
-                // Ver más
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
+                    key: Key('btn_ver_mas_${prop["id"]}'),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: MiTema.azulPrincipal,
                       foregroundColor: Colors.white,

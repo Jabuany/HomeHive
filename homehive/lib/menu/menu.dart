@@ -7,42 +7,51 @@ Drawer menu(BuildContext context) {
     child: Column(
       children: [
         const SizedBox(height: 50),
+
         const Text(
           'HomeHive',
           style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
         ),
-        _perfil(context), 
+
+        _perfil(context),
+
         const SizedBox(height: 20),
-        _opcion(Icons.chat, 'Chat', () {
+
+        _opcion(context, Icons.chat, 'Chat', () {
           Navigator.of(context).pushNamed('/chat');
-        }),
-        // _opcion(Icons.report, 'Reportar', () {
-        //   Navigator.of(context).pushNamed('/reportar');
-        // }),
-        _opcion(Icons.help, 'Ayuda', () {
-          Navigator.of(context).pushNamed('/');
-        }),
-        if (UserService.currentUser?['role'] == 'inquilino') 
-        _opcion(Icons.favorite, 'Favoritos', () {
-          Navigator.of(context).pushNamed('/favoritos');
-        }),
-        _opcion(Icons.request_quote, 'Solicitudes', () {
-          Navigator.of(context).pushNamed('/solicitudes');
-        }),
+        }, "menu_chat"),
+
+        if (UserService.currentUser?['role'] == 'inquilino')
+          _opcion(context, Icons.help, 'Ayuda', () {
+            Navigator.of(context).pushNamed('/');
+          }, 'menu_ayuda'),
+
+        if (UserService.currentUser?['role'] == 'inquilino')
+          _opcion(context, Icons.favorite, 'Favoritos', () {
+            Navigator.of(context).pushNamed('/favoritos');
+          }, 'menu_favoritos'),
+
         if (UserService.currentUser?['role'] == 'propietario')
-          _opcion(Icons.home, 'Mis propiedades', () {
+          _opcion(context, Icons.request_quote, 'Solicitudes', () {
+            Navigator.of(context).pushNamed('/solicitudes');
+          }, 'menu_solicitudes'),
+
+        if (UserService.currentUser?['role'] == 'propietario')
+          _opcion(context, Icons.home, 'Mis propiedades', () {
             Navigator.of(context).pushNamed('/mispropiedades');
-          }),
-        _opcion(Icons.exit_to_app, 'Salir', () async {
+          }, 'menu_mis_propiedades'),
+
+        _opcion(context, Icons.exit_to_app, 'Salir', () async {
+          final navigator = Navigator.of(context);
+
           try {
             await UserService.logout();
-            Navigator.of(
-              context,
-            ).pushNamedAndRemoveUntil('/login', (route) => false);
+
+            navigator.pushNamedAndRemoveUntil('/login', (route) => false);
           } catch (e) {
             print("Error al cerrar sesión: $e");
           }
-        }),
+        }, 'menu_logout'),
       ],
     ),
   );
@@ -53,7 +62,7 @@ Widget _perfil(BuildContext context) {
     onTap: () {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const EditProfile()),
+        MaterialPageRoute(builder: (_) => const EditProfile()),
       );
     },
     child: Padding(
@@ -61,14 +70,17 @@ Widget _perfil(BuildContext context) {
       child: Column(
         children: [
           const Icon(Icons.person_2, size: 90),
+
           const SizedBox(height: 10),
+
           Text(
-            UserService.currentUser?['name'] ??
-                'Usuario', //se agrego esto, para poder mostrar el nombre del usuario en el menú
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+            UserService.currentUser?['name'] ?? 'Usuario',
+            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
           ),
+
           const SizedBox(height: 5),
+
           const Text(
             'Ver perfil',
             style: TextStyle(color: Colors.blue, fontSize: 14),
@@ -79,10 +91,24 @@ Widget _perfil(BuildContext context) {
   );
 }
 
-Widget _opcion(IconData icono, String texto, Function() accion) {
-  return ListTile(
-    leading: Icon(icono),
-    title: Text(texto),
-    onTap: accion,
+Widget _opcion(
+  BuildContext context,
+  IconData icono,
+  String texto,
+  Function() accion,
+  String keyName,
+) {
+  return Semantics(
+    label: keyName,
+    child: ListTile(
+      key: Key(keyName),
+      leading: Icon(icono),
+      title: Text(texto),
+
+      onTap: () {
+        Navigator.pop(context);
+        accion(); 
+      },
+    ),
   );
 }

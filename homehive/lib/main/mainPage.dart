@@ -32,6 +32,18 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: Builder(
+          builder: (context) {
+            return IconButton(
+              key: const ValueKey('open_drawer'),
+              tooltip: 'open_drawer', // 🔥 Appium lo detecta aquí
+              icon: const Icon(Icons.menu),
+              onPressed: () {
+                Scaffold.of(context).openDrawer();
+              },
+            );
+          },
+        ),
         elevation: 0,
         centerTitle: true,
         title: const Text(
@@ -46,8 +58,11 @@ class _MainPageState extends State<MainPage> {
           SizedBox(width: 20),
         ],
       ),
-      drawer: menu(context),
-      endDrawer: filtro(context),
+
+      drawer: Builder(builder: (context) => menu(context)),
+
+      endDrawer: Builder(builder: (context) => filtro(context)),
+
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
@@ -75,18 +90,14 @@ class _MainPageState extends State<MainPage> {
 
                 final propiedades = snapshot.data!;
 
-                if (propiedades.isEmpty) {
-                  return const Center(
-                    child: Text('No hay propiedades disponibles'),
-                  );
-                }
-
                 final cuartos = propiedades
                     .where((p) => p['tipo'] == 'cuarto')
                     .toList();
+
                 final casas = propiedades
                     .where((p) => p['tipo'] == 'casa')
                     .toList();
+
                 final departamentos = propiedades
                     .where((p) => p['tipo'] == 'departamento')
                     .toList();
@@ -130,13 +141,11 @@ class _MainPageState extends State<MainPage> {
               ),
             ),
           ),
-          Builder(
-            builder: (context) => IconButton(
-              icon: const Icon(Icons.filter_list, color: MiTema.textamarillo),
-              onPressed: () {
-                Scaffold.of(context).openEndDrawer();
-              },
-            ),
+          IconButton(
+            icon: const Icon(Icons.filter_list, color: MiTema.textamarillo),
+            onPressed: () {
+              Scaffold.of(context).openEndDrawer(); // ✔ limpio y correcto
+            },
           ),
         ],
       ),

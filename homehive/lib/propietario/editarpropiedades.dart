@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:homehive/services/propserv.dart';
 import 'package:homehive/services/users.dart';
@@ -13,73 +14,47 @@ class EditarPropiedadPage extends StatefulWidget {
 }
 
 class _EditarPropiedadPageState extends State<EditarPropiedadPage> {
-  late TextEditingController nombreCtrl;
-  late TextEditingController precioCtrl;
-  late TextEditingController reglasCtrl;
-  late TextEditingController descripcionCtrl;
+  final TextEditingController nombreCtrl = TextEditingController();
+  final TextEditingController precioCtrl = TextEditingController();
+  final TextEditingController reglasCtrl = TextEditingController();
+  final TextEditingController descripcionCtrl = TextEditingController();
+  final TextEditingController cercaniasCtrl = TextEditingController();
 
   String tipoSeleccionado = "cuarto";
+  String formaPago = "transferencia";
+  List<String> servicios = [];
+
   bool isLoading = true;
 
   @override
   void initState() {
     super.initState();
-
-    nombreCtrl = TextEditingController();
-    precioCtrl = TextEditingController();
-    reglasCtrl = TextEditingController();
-    descripcionCtrl = TextEditingController();
-
     cargarPropiedad();
   }
 
-  Future<void> cargarPropiedad() async {
-    try {
-      print("PROP RECIBIDA:");
-      print(widget.prop);
+  void cargarPropiedad() {
+    final data = widget.prop;
 
-      final int? id = widget.prop['id'] is int
-          ? widget.prop['id']
-          : int.tryParse(widget.prop['id']?.toString() ?? '');
+    nombreCtrl.text = data['titulo'] ?? '';
+    precioCtrl.text = data['precio']?.toString() ?? '';
+    reglasCtrl.text = data['reglas'] ?? '';
+    descripcionCtrl.text = data['descripcion'] ?? '';
+    cercaniasCtrl.text = data['cercanias'] ?? '';
 
-      if (id == null) {
-        throw Exception("ID inválido o null");
-      }
+    tipoSeleccionado = data['tipo'] ?? "cuarto";
 
-      final data = await PropiedadService.getPropiedad(id);
+    formaPago =
+        (data['forma_pago'] != null && data['forma_pago'].toString().isNotEmpty)
+        ? data['forma_pago']
+        : "transferencia";
 
-      setState(() {
-        nombreCtrl.text = data['titulo'] ?? '';
-        precioCtrl.text = data['precio']?.toString() ?? '';
-        reglasCtrl.text = data['reglas'] ?? '';
-        descripcionCtrl.text = data['descripcion'] ?? '';
-
-        String servicio = data['servicio']?.toString().toLowerCase() ?? '';
-
-        if (servicio.contains("cuarto")) {
-          tipoSeleccionado = "cuarto";
-        } else if (servicio.contains("casa")) {
-          tipoSeleccionado = "casa";
-        } else if (servicio.contains("departamento")) {
-          tipoSeleccionado = "departamento";
-        } else {
-          tipoSeleccionado = "cuarto";
-        }
-
-        isLoading = false;
-      });
-    } catch (e) {
-      print("ERROR: $e");
+    if (data['servicio'] != null && data['servicio'] is String) {
+      servicios = List<String>.from(jsonDecode(data['servicio']));
+    } else if (data['servicio'] is List) {
+      servicios = List<String>.from(data['servicio']);
     }
-  }
 
-  @override
-  void dispose() {
-    nombreCtrl.dispose();
-    precioCtrl.dispose();
-    reglasCtrl.dispose();
-    descripcionCtrl.dispose();
-    super.dispose();
+    setState(() => isLoading = false);
   }
 
   @override
@@ -90,101 +65,62 @@ class _EditarPropiedadPageState extends State<EditarPropiedadPage> {
 
     return Scaffold(
       backgroundColor: MiTema.bggris,
-      appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          'HomeHive',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: MiTema.textPrimary,
-          ),
-        ),
-        leading: const BackButton(color: MiTema.textPrimary),
-      ),
+      appBar: AppBar(title: const Text("Editar Propiedad")),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
-        child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: MiTema.cart,
-            borderRadius: BorderRadius.circular(25),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                "Modificación de propiedades",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 20),
+        child: Column(
+          children: [
+            _input("Nombre", nombreCtrl, "input_nombre"),
+            _input("Precio", precioCtrl, "input_precio", isNumber: true),
+            _input("Reglas", reglasCtrl, "input_reglas"),
+            _input("Descripción", descripcionCtrl, "input_descripcion"),
+            _input("Cercanías", cercaniasCtrl, "input_cercanias"),
 
-              _input("Nombre", nombreCtrl),
-              _input("Precio", precioCtrl, isNumber: true),
+            const SizedBox(height: 15),
 
-              const SizedBox(height: 10),
-
-              DropdownButtonFormField<String>(
-                value: tipoSeleccionado,
-                decoration: _inputDecoration(),
-                items: ["cuarto", "casa", "departamento"]
-                    .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                    .toList(),
-                onChanged: (value) {
-                  setState(() {
-                    tipoSeleccionado = value!;
-                  });
-                },
-              ),
-
-              const SizedBox(height: 10),
-
-              _input("Reglas", reglasCtrl),
-              _input("Descripción", descripcionCtrl),
-
-              const SizedBox(height: 25),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: MiTema.azulPrincipal,
-                  ),
-                  onPressed: () async {
-                    try {
-                      String token = await UserService.obtenerToken();
-
-                      bool ok = await PropiedadService.updatePropiedad(
-                        widget.prop['id'],
-                        nombreCtrl.text,
-                        precioCtrl.text,
-                        tipoSeleccionado,
-                        reglasCtrl.text,
-                        descripcionCtrl.text,
-                        token,
-                      );
-
-                      if (ok) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text("Actualizado correctamente"),
-                          ),
-                        );
-                        Navigator.pop(context);
-                      } else {
-                        throw Exception("Error update");
-                      }
-                    } catch (e) {
-                      ScaffoldMessenger.of(
-                        context,
-                      ).showSnackBar(SnackBar(content: Text("Error: $e")));
-                    }
-                  },
-                  child: const Text("Guardar cambios"),
+            DropdownButtonFormField<String>(
+              value: tipoSeleccionado,
+              decoration: _decoration("Tipo"),
+              items: const [
+                DropdownMenuItem(value: "cuarto", child: Text("cuarto")),
+                DropdownMenuItem(value: "casa", child: Text("casa")),
+                DropdownMenuItem(
+                  value: "departamento",
+                  child: Text("departamento"),
                 ),
+              ],
+              onChanged: (v) => setState(() => tipoSeleccionado = v!),
+            ),
+
+            const SizedBox(height: 25),
+
+            Semantics(
+              label: "btn_guardar",
+              child: ElevatedButton(
+                onPressed: () async {
+                  String token = await UserService.obtenerToken();
+
+                  final result = await PropiedadService.updatePropiedad(
+                    widget.prop['id'],
+                    nombreCtrl.text,
+                    precioCtrl.text,
+                    tipoSeleccionado,
+                    reglasCtrl.text,
+                    descripcionCtrl.text,
+                    token,
+                    formaPago,
+                    servicios,
+                    cercaniasCtrl.text,
+                  );
+
+                  if (result["ok"]) {
+                    Navigator.pop(context, true);
+                  }
+                },
+                child: const Text("Guardar cambios"),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -192,25 +128,26 @@ class _EditarPropiedadPageState extends State<EditarPropiedadPage> {
 
   Widget _input(
     String label,
-    TextEditingController controller, {
+    TextEditingController ctrl,
+    String id, {
     bool isNumber = false,
   }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label),
-        TextField(
-          controller: controller,
+    return Semantics(
+      label: id,
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 12),
+        child: TextField(
+          controller: ctrl,
           keyboardType: isNumber ? TextInputType.number : TextInputType.text,
-          decoration: _inputDecoration(),
+          decoration: InputDecoration(labelText: label),
         ),
-        const SizedBox(height: 10),
-      ],
+      ),
     );
   }
 
-  InputDecoration _inputDecoration() {
+  InputDecoration _decoration(String label) {
     return InputDecoration(
+      labelText: label,
       filled: true,
       fillColor: MiTema.bggris,
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
