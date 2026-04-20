@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:homehive/config/config.dart';
 import 'package:homehive/inquilino/favoritos.dart';
-import 'package:homehive/main/chat.dart';
+import 'package:homehive/main/listchat.dart';
 import 'package:homehive/main/mainPage.dart';
 import 'package:homehive/main/solicitudes.dart';
 import 'package:homehive/propietario/mispropiedades.dart';
@@ -30,11 +30,11 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const Login(),
         '/inicio': (context) => const MainPage(),
         '/favoritos': (context) => const Favorite(),
-        '/chat': (context) => const Chat(),
         '/notificaciones': (context) => const NotificacionesSolicitudes(),
         '/mispropiedades': (context) => const MisPropiedades(),
         '/solicitudes': (context) => const MisSolicitudesPage(),
         '/perfil': (context) => const ProfileView(),
+        '/listerchat': (context) => const ChatListScreen(),
       },
     );
   }
