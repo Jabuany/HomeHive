@@ -1,7 +1,22 @@
 
 import 'package:flutter/material.dart';
+import 'package:homehive/config/config.dart';
 import 'package:homehive/theme/tema.dart';
 import 'package:homehive/services/users.dart';
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      title: 'HomeHive',
+      theme: MiTema.temaApp(context),
+      home: const EditProfile(),
+    );
+  }
+}
 
 class EditProfile extends StatefulWidget {
   const EditProfile({super.key});
@@ -39,19 +54,18 @@ class _EditProfileState extends State<EditProfile> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: MiTema.bggris,
-      appBar: AppBar(
-        backgroundColor: MiTema.bggris,
+        appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         leading: IconButton(
-          onPressed: () => Navigator.pop(context),
           icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'HomeHive',
           style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
             color: MiTema.textPrimary,
+            fontWeight: FontWeight.bold,
           ),
         ),
         centerTitle: true,
@@ -75,9 +89,29 @@ class _EditProfileState extends State<EditProfile> {
                     alignment: Alignment.center,
                     clipBehavior: Clip.none,
                     children: [
-                      const CircleAvatar(
-                        radius: 60,
-                        backgroundImage: AssetImage('assets/logosnf.png'),
+                      CircleAvatar(
+                        radius: 50,
+                        backgroundColor: Colors.grey[200],
+                        backgroundImage:
+                            (UserService.currentUser?['avatar'] != null &&
+                                UserService.currentUser!['avatar']
+                                    .toString()
+                                    .isNotEmpty)
+                            ? NetworkImage(
+                                "${Config.baseUrl}/storage/${UserService.currentUser!['avatar']}",
+                              )
+                            : null,
+                        child:
+                            (UserService.currentUser?['avatar'] == null ||
+                                UserService.currentUser!['avatar']
+                                    .toString()
+                                    .isEmpty)
+                            ? const Icon(
+                                Icons.person,
+                                size: 40,
+                                color: Colors.grey,
+                              )
+                            : null,
                       ),
                       Positioned(
                         bottom: 4,

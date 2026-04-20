@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:homehive/config/config.dart';
 import 'package:homehive/propietario/editarpropiedades.dart';
 import 'package:homehive/services/propserv.dart';
 import 'package:homehive/theme/tema.dart';
@@ -96,9 +97,9 @@ class _MisPropiedadesState extends State<MisPropiedades> {
         children: [
           ClipRRect(
             borderRadius: const BorderRadius.vertical(top: Radius.circular(25)),
-            child: prop['imagen'] != null
+            child: prop['imagenes'] != null
                 ? Image.network(
-                    prop['imagen'],
+                    "${Config.baseUrl}/storage/${prop['imagenes'][0]['ruta']}",
                     height: 160,
                     width: double.infinity,
                     fit: BoxFit.cover,

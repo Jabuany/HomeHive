@@ -26,19 +26,6 @@ class _FavoriteState extends State<Favorite> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          'HomeHive',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: MiTema.textPrimary,
-          ),
-        ),
-      ),
-
-
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
