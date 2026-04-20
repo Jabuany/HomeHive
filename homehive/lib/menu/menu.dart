@@ -18,7 +18,7 @@ Drawer menu(BuildContext context) {
         const SizedBox(height: 20),
 
         _opcion(context, Icons.chat, 'Chat', () {
-          Navigator.of(context).pushNamed('/chat');
+          Navigator.of(context).pushNamed('/listerchat');
         }, "menu_chat"),
 
         if (UserService.currentUser?['role'] == 'inquilino')

@@ -1,28 +1,67 @@
 import 'package:flutter/material.dart';
+import 'package:homehive/services/chat_service.dart';
+import 'package:homehive/services/users.dart';
 import 'package:homehive/theme/tema.dart';
 
-class App extends StatelessWidget {
-  const App({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: MiTema.temaApp(context),
-      title: 'HomeHive',
-      home: Chat(),
-    );
-  }
-}
-
 class Chat extends StatefulWidget {
-  const Chat({super.key});
+  final int conversationId;
+  final String otherUserName;
+
+  const Chat({
+    super.key,
+    required this.conversationId,
+    required this.otherUserName,
+  });
 
   @override
   State<Chat> createState() => _ChatState();
 }
 
 class _ChatState extends State<Chat> {
+  List<dynamic> messages = [];
+  final TextEditingController controller = TextEditingController();
+  int? userId;
+  bool loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    initChat();
+  }
+
+  Future<void> initChat() async {
+    final user = await UserService.obtenerUsuarioLocal();
+    userId = user?['id'];
+
+    await loadMessages();
+  }
+
+  Future<void> loadMessages() async {
+    final data = await ChatService.getMessages(widget.conversationId);
+
+    setState(() {
+      messages = data;
+      loading = false;
+    });
+  }
+
+  Future<void> sendMessage() async {
+    if (controller.text.trim().isEmpty) return;
+
+    final text = controller.text;
+    controller.clear();
+
+    await ChatService.sendMessage(
+      conversationId: widget.conversationId,
+      senderId: userId!,
+      message: text,
+    );
+
+    await loadMessages();
+
+    setState(() {}); 
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -30,49 +69,30 @@ class _ChatState extends State<Chat> {
 
       appBar: AppBar(
         elevation: 0,
+        title: Text(widget.otherUserName),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
-        ),
-        titleSpacing: 0,
-        title: Row(
-          children: [
-            Icon(Icons.person_2),
-            const SizedBox(width: 10),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
-                Text(
-                  'Pablito mendez',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Text(
-                  'Activo(a) hace 9 horas',
-                  style: TextStyle(fontSize: 12, color: MiTema.textamarillo),
-                ),
-              ],
-            ),
-          ],
         ),
       ),
 
       body: Column(
         children: [
           Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _mensajeRecibido('Puede realizar el pago\na través de la QR'),
-                _mensajeEnviado(
-                  'Claro que sí, en un momento\nle envío el comprobante',
-                ),
-                _mensajeRecibido('Muy bien'),
-                _tarjetaTransferencia(),
-                _mensajeRecibido(
-                  'Con esto concluimos, puede\nvenir en cualquier momento',
-                ),
-              ],
-            ),
+            child: loading
+                ? const Center(child: CircularProgressIndicator())
+                : ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: messages.length,
+                    itemBuilder: (context, index) {
+                      final msg = messages[index];
+                      final isMe = msg['sender_id'] == userId;
+
+                      return isMe
+                          ? _mensajeEnviado(msg['message'])
+                          : _mensajeRecibido(msg['message']);
+                    },
+                  ),
           ),
 
           _inputMensaje(),
@@ -91,7 +111,7 @@ class _ChatState extends State<Chat> {
           color: Colors.grey.shade300,
           borderRadius: BorderRadius.circular(14),
         ),
-        child: Text(texto, style: const TextStyle(fontSize: 14)),
+        child: Text(texto),
       ),
     );
   }
@@ -106,48 +126,7 @@ class _ChatState extends State<Chat> {
           color: MiTema.verde,
           borderRadius: BorderRadius.circular(14),
         ),
-        child: Text(
-          texto,
-          style: const TextStyle(fontSize: 14, color: Colors.white),
-        ),
-      ),
-    );
-  }
-
-  Widget _tarjetaTransferencia() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: Container(
-        width: 230,
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: MiTema.verde,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: const [
-            Text(
-              'Transferencia exitosa',
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              '\$20,000.00',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text('Estado: Completado', style: TextStyle(color: Colors.white70)),
-          ],
-        ),
+        child: Text(texto, style: const TextStyle(color: Colors.white)),
       ),
     );
   }
@@ -158,17 +137,13 @@ class _ChatState extends State<Chat> {
       color: MiTema.gris,
       child: Row(
         children: [
-          IconButton(icon: const Icon(Icons.camera_alt), onPressed: () {}),
           Expanded(
             child: TextField(
+              controller: controller,
               decoration: InputDecoration(
-                hintText: 'Mensaje',
+                hintText: "Mensaje",
                 filled: true,
                 fillColor: MiTema.bggris,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(30),
                   borderSide: BorderSide.none,
@@ -176,7 +151,7 @@ class _ChatState extends State<Chat> {
               ),
             ),
           ),
-          IconButton(icon: const Icon(Icons.send), onPressed: () {}),
+          IconButton(icon: const Icon(Icons.send), onPressed: sendMessage),
         ],
       ),
     );

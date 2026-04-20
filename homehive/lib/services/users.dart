@@ -9,7 +9,9 @@ class UserService {
   static Map<String, dynamic>? currentUser;
   static String? token;
 
+ 
   // LOGIN
+ 
   static Future<Map<String, dynamic>> login(
     String email,
     String password,
@@ -29,9 +31,6 @@ class UserService {
       }),
     );
 
-    print("STATUS: ${response.statusCode}");
-    print("BODY: ${response.body}");
-
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200) {
@@ -39,6 +38,9 @@ class UserService {
       final userResponse = data['data']['user'];
 
       await guardarToken(tokenResponse);
+      await guardarUsuario(userResponse);
+
+      token = tokenResponse;
       currentUser = userResponse;
 
       return data;
@@ -47,7 +49,9 @@ class UserService {
     }
   }
 
-  // GUARDAR TOKEN
+ 
+  // TOKEN
+ 
   static Future<void> guardarToken(String newToken) async {
     token = newToken;
 
@@ -55,7 +59,6 @@ class UserService {
     await prefs.setString('token', newToken);
   }
 
-  // OBTENER TOKEN
   static Future<String> obtenerToken() async {
     if (token != null) return token!;
 
@@ -65,7 +68,36 @@ class UserService {
     return token ?? '';
   }
 
+ 
+  // USER LOCAL STORAGE
+ 
+  static Future<void> guardarUsuario(Map<String, dynamic> user) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('user', jsonEncode(user));
+  }
+
+  static Future<Map<String, dynamic>?> obtenerUsuarioLocal() async {
+    if (currentUser != null) return currentUser;
+
+    final prefs = await SharedPreferences.getInstance();
+    final userString = prefs.getString('user');
+
+    if (userString == null) return null;
+
+    final user = jsonDecode(userString);
+    currentUser = user;
+
+    return user;
+  }
+
+  static Future<int?> obtenerUserId() async {
+    final user = await obtenerUsuarioLocal();
+    return user != null ? user['id'] : null;
+  }
+
+ 
   // LOGOUT
+ 
   static Future<void> logout() async {
     try {
       String tokenActual = await obtenerToken();
@@ -78,26 +110,28 @@ class UserService {
             "Authorization": "Bearer $tokenActual",
           },
         );
-      } catch (e) {
-        print("Logout API error ignorado: $e");
+      } catch (_) {
+        // ignoramos error del backend
       }
     } finally {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('token');
+      await prefs.remove('user');
 
       token = null;
       currentUser = null;
     }
   }
 
+ 
   // UPDATE USER
+ 
   static Future<Map<String, dynamic>> update(
     String name,
     String email,
     String password,
   ) async {
     final url = Uri.parse("$baseUrl/user/update");
-
     String tokenActual = await obtenerToken();
 
     Map<String, dynamic> body = {"name": name, "email": email};
@@ -117,13 +151,11 @@ class UserService {
       body: jsonEncode(body),
     );
 
-    print("STATUS: ${response.statusCode}");
-    print("BODY: ${response.body}");
-
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200) {
       currentUser = data['user'];
+      await guardarUsuario(currentUser!);
       return data;
     } else {
       throw Exception(data['message'] ?? "Error al actualizar");
