@@ -13,6 +13,7 @@ class MiTema {
     64,
     175,
   );
+  static const Color fondo = Color(0xFFB0B3D3);
   static const Color amarillo = Color.fromARGB(
     255,
     245,
@@ -72,8 +73,9 @@ class MiTema {
   static ThemeData temaApp(BuildContext) {
     return ThemeData(
       useMaterial3: true,
+      // fontFamily:'Arial',
 
-      scaffoldBackgroundColor: gris,
+      scaffoldBackgroundColor: fondo,
 
       colorScheme: ColorScheme.light(
         primary: azulPrincipal,

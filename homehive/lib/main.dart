@@ -8,6 +8,7 @@ import 'package:homehive/propietario/mispropiedades.dart';
 import 'package:homehive/services/users.dart';
 import 'package:homehive/views/notificaciones_solicitudes.dart';
 import 'package:app_links/app_links.dart';
+import 'package:homehive/views/perfil.dart';
 import 'theme/tema.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -33,6 +34,7 @@ class MyApp extends StatelessWidget {
         '/notificaciones': (context) => const NotificacionesSolicitudes(),
         '/mispropiedades': (context) => const MisPropiedades(),
         '/solicitudes': (context) => const MisSolicitudesPage(),
+        '/perfil': (context) => const ProfileView(),
       },
     );
   }
@@ -219,7 +221,7 @@ class _LoginState extends State<Login> {
         border: Border.all(color: MiTema.border),
       ),
       child: TextField(
-        key: Key(keyName), // 👈 ESTE es el importante
+        key: Key(keyName),
         controller: controller,
         obscureText: isPassword,
         decoration: InputDecoration(

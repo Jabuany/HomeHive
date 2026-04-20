@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:homehive/config/config.dart';
 import 'package:homehive/services/users.dart';
-import 'package:homehive/views/edit_profile.dart';
 
 Drawer menu(BuildContext context) {
   return Drawer(
@@ -60,16 +60,28 @@ Drawer menu(BuildContext context) {
 Widget _perfil(BuildContext context) {
   return InkWell(
     onTap: () {
-      Navigator.push(
+      Navigator.pushNamedAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (_) => const EditProfile()),
+        '/perfil',
+        (route) => false,
       );
     },
     child: Padding(
       padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
       child: Column(
         children: [
-          const Icon(Icons.person_2, size: 90),
+          CircleAvatar(
+            radius: 50,
+            backgroundColor: Colors.grey[200],
+            backgroundImage: (UserService.currentUser?['avatar'] != null &&
+                    UserService.currentUser!['avatar'].toString().isNotEmpty)
+                ? NetworkImage("${Config.baseUrl}/storage/${UserService.currentUser!['avatar']}")
+                : null,
+            child: (UserService.currentUser?['avatar'] == null ||
+                    UserService.currentUser!['avatar'].toString().isEmpty)
+                ? const Icon(Icons.person, size: 40, color: Colors.grey)
+                : null,
+          ),
 
           const SizedBox(height: 10),
 

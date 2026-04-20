@@ -38,6 +38,7 @@ dependencies:
   shared_preferences: ^2.2.2
   app_links: ^3.4.5
   url_launcher: ^6.2.5
+  flutter_map: ^8.3.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -90,6 +91,12 @@ flutter:
   # list giving the asset and other descriptors for the font. For
   # example:
   # fonts:
+    # - family: Arial
+      # fonts:
+        # - asset: assets/fonts/Arial.ttf
+        # - asset: assets/fonts/arialbd.ttf
+          # weight: 700 
+
   #   - family: Schyler
   #     fonts:
   #       - asset: fonts/Schyler-Regular.ttf

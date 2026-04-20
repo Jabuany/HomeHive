@@ -36,7 +36,7 @@ class _MainPageState extends State<MainPage> {
           builder: (context) {
             return IconButton(
               key: const ValueKey('open_drawer'),
-              tooltip: 'open_drawer', // 🔥 Appium lo detecta aquí
+              tooltip: 'open_drawer',
               icon: const Icon(Icons.menu),
               onPressed: () {
                 Scaffold.of(context).openDrawer();
@@ -144,7 +144,7 @@ class _MainPageState extends State<MainPage> {
           IconButton(
             icon: const Icon(Icons.filter_list, color: MiTema.textamarillo),
             onPressed: () {
-              Scaffold.of(context).openEndDrawer(); // ✔ limpio y correcto
+              Scaffold.of(context).openEndDrawer(); 
             },
           ),
         ],
