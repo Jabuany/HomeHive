@@ -91,7 +91,9 @@ class _VerMasState extends State<VerMas> {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const Rentar()),
+                  MaterialPageRoute(
+                    builder: (_) => Rentar(prop: prop), // 'prop' es el objeto de la propiedad actual
+                  ),
                 );
               },
               label: const Text(
