@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:homehive/config/config.dart';
+import 'package:homehive/main/chat.dart';
 import 'package:homehive/services/maps.dart';
 import 'package:homehive/services/users.dart';
 import 'package:homehive/theme/tema.dart';
 import 'package:homehive/views/rentar.dart';
 import 'package:homehive/services/reseñaserv.dart';
+import 'package:homehive/services/chat_service.dart';
 
 class VerMas extends StatefulWidget {
   final dynamic prop;
@@ -160,6 +162,44 @@ class _VerMasState extends State<VerMas> {
                     ),
 
                     const SizedBox(height: 15),
+
+                    const SizedBox(height: 10),
+
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: MiTema.azulPrincipal,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 12,
+                          horizontal: 16,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      icon: const Icon(Icons.chat, color: Colors.white),
+                      label: const Text(
+                        "Contactar propietario",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      onPressed: () async {
+                        final user = await UserService.obtenerUsuarioLocal();
+
+                        final conversation =
+                            await ChatService.createOrGetConversation(
+                              userOneId: user!['id'],
+                              userTwoId: widget
+                                  .prop['user_id'],
+                              propertyId: widget.prop['id'],
+                            );
+
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => Chat(conversationId: conversation['id'], otherUserName: widget.prop['usuario']?['name'] ?? 'Propietario'),
+                          ),
+                        );
+                      },
+                    ),
 
                     // secciones
                     _seccion('Descripción', prop['descripcion'] ?? ''),
