@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "869483317654",
+    "project_id": "homehive-df0e6",
+    "storage_bucket": "homehive-df0e6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:869483317654:android:f394d559b566d63fe4b5b7",
+        "android_client_info": {
+          "package_name": "HomeHive.chat"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC183a5lVcDspkxPlkPuWV7WICsjeSdog8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:869483317654:android:f63186d1499890dbe4b5b7",
+        "android_client_info": {
+          "package_name": "com.example.homehive"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC183a5lVcDspkxPlkPuWV7WICsjeSdog8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

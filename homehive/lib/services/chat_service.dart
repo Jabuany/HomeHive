@@ -68,12 +68,15 @@ class ChatService {
       }),
     );
 
+    print("STATUS: ${response.statusCode}");
+    print("BODY: ${response.body}");
+
     final data = jsonDecode(response.body);
 
     if (response.statusCode == 200) {
       return data;
     } else {
-      throw Exception("Error al enviar mensaje");
+      throw Exception("Error backend: ${response.body}");
     }
   }
 

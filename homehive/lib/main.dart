@@ -11,8 +11,73 @@ import 'package:app_links/app_links.dart';
 import 'package:homehive/views/perfil.dart';
 import 'theme/tema.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
-void main() {
+Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
+  print("📩 Mensaje en background: ${message.notification?.title}");
+}
+
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
+    FlutterLocalNotificationsPlugin();
+
+late AndroidNotificationChannel channel;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  await Firebase.initializeApp();
+  await FirebaseMessaging.instance.requestPermission();
+
+  channel = const AndroidNotificationChannel(
+    'channel_id',
+    'channel_name',
+    description: 'Canal de notificaciones de HomeHive',
+    importance: Importance.max,
+  );
+
+  final androidPlugin = flutterLocalNotificationsPlugin
+      .resolvePlatformSpecificImplementation<
+        AndroidFlutterLocalNotificationsPlugin
+      >();
+
+  await androidPlugin?.createNotificationChannel(channel);
+
+  FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+
+  await flutterLocalNotificationsPlugin.initialize(
+    const InitializationSettings(
+      android: AndroidInitializationSettings('@mipmap/ic_launcher'),
+    ),
+  );
+
+FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+    final data = message.data;
+
+    final title = (data['title'] ?? '').toString().isNotEmpty
+        ? data['title'].toString()
+        : message.notification?.title ?? 'Sin título';
+
+    final body = (data['body'] ?? '').toString().isNotEmpty
+        ? data['body'].toString()
+        : message.notification?.body ?? '';
+
+    flutterLocalNotificationsPlugin.show(
+      DateTime.now().millisecondsSinceEpoch ~/ 1000,
+      title,
+      body,
+      const NotificationDetails(
+        android: AndroidNotificationDetails(
+          'channel_id',
+          'channel_name',
+          importance: Importance.max,
+          priority: Priority.high,
+        ),
+      ),
+    );
+  });
+
   runApp(const MyApp());
 }
 
@@ -90,12 +155,11 @@ class _LoginState extends State<Login> {
     });
 
     try {
-      final response = await UserService.login(email, password);
+      await UserService.login(email, password);
 
-      // El servicio ya guarda token y usuario
-      final user = response['data']['user'];
+      final userActualizado = await UserService.obtenerUsuarioLocal();
 
-      print("USER: $user");
+      print("USER ACTUALIZADO: $userActualizado");
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -188,7 +252,7 @@ class _LoginState extends State<Login> {
             ),
             GestureDetector(
               onTap: () async {
-                final url = Uri.parse('${Config.baseUrl}register?from=app');
+                final url = Uri.parse('${Config.baseUrl}/register?from=app');
                 await launchUrl(url, mode: LaunchMode.externalApplication);
               },
               child: Text(

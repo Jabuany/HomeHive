@@ -5,9 +5,11 @@ import 'package:homehive/menu/menu.dart';
 import 'package:homehive/services/propserv.dart';
 import 'package:homehive/theme/tema.dart';
 import 'package:homehive/main/vermas.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
+  
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +27,24 @@ class MainPage extends StatefulWidget {
 
   @override
   State<MainPage> createState() => _MainPageState();
+  
 }
 
 class _MainPageState extends State<MainPage> {
+  @override
+  void initState() {
+    super.initState();
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("Notificación en foreground");
+
+      if (message.notification != null) {
+        print("Título: ${message.notification!.title}");
+        print("Body: ${message.notification!.body}");
+      }
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -144,7 +161,7 @@ class _MainPageState extends State<MainPage> {
           IconButton(
             icon: const Icon(Icons.filter_list, color: MiTema.textamarillo),
             onPressed: () {
-              Scaffold.of(context).openEndDrawer(); 
+              filtro(context); 
             },
           ),
         ],
@@ -283,5 +300,15 @@ class _MainPageState extends State<MainPage> {
         ),
       ],
     );
+  }
+  void configurarNotificaciones() {
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      print("Mensaje recibido en foreground");
+
+      if (message.notification != null) {
+        print("Título: ${message.notification!.title}");
+        print("Body: ${message.notification!.body}");
+      }
+    });
   }
 }

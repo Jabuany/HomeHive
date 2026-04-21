@@ -13,6 +13,7 @@ class PropiedadService {
 
     if (response.statusCode == 200) {
       final body = jsonDecode(response.body);
+      print(body);
       return body["propiedades"];
     } else {
       throw Exception("Error ${response.statusCode}");
