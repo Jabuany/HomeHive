@@ -13,6 +13,7 @@ import 'theme/tema.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:homehive/main/mis_pagos.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
@@ -100,6 +101,7 @@ class MyApp extends StatelessWidget {
         '/solicitudes': (context) => const MisSolicitudesPage(),
         '/perfil': (context) => const ProfileView(),
         '/listerchat': (context) => const ChatListScreen(),
+        '/mis-pagos': (context) => const MisPagosPage(),
       },
     );
   }

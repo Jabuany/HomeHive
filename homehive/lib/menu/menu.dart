@@ -16,6 +16,10 @@ Drawer menu(BuildContext context) {
         _perfil(context),
 
         const SizedBox(height: 20),
+        
+        _opcion(context, Icons.home, 'Inicio', () {
+          Navigator.of(context).pushNamed('/inicio');
+        }, "menu_inicio"),
 
         _opcion(context, Icons.chat, 'Chat', () {
           Navigator.of(context).pushNamed('/listerchat');
@@ -31,10 +35,25 @@ Drawer menu(BuildContext context) {
             Navigator.of(context).pushNamed('/favoritos');
           }, 'menu_favoritos'),
 
+        if (UserService.currentUser?['role'] == 'inquilino')
+          _opcion(context, Icons.home, 'Mis solicitudes', () {
+            Navigator.of(context).pushNamed('/solicitudes');
+          }, 'Mis_Solicitudes'),
+        
+        if (UserService.currentUser?['role'] == 'inquilino')
+          _opcion(context, Icons.payment, 'Mis pagos', () {
+            Navigator.of(context).pushNamed('/mis-pagos');
+          }, 'menu_mis_pagos'),
+
         if (UserService.currentUser?['role'] == 'propietario')
           _opcion(context, Icons.request_quote, 'Solicitudes', () {
             Navigator.of(context).pushNamed('/solicitudes');
           }, 'menu_solicitudes'),
+
+        if (UserService.currentUser?['role'] == 'propietario')
+          _opcion(context, Icons.payment, 'Mis pagos', () {
+            Navigator.of(context).pushNamed('/mis-pagos');
+          }, 'menu_mis_pagos'),
 
         if (UserService.currentUser?['role'] == 'propietario')
           _opcion(context, Icons.home, 'Mis propiedades', () {
