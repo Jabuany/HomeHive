@@ -114,7 +114,7 @@ Widget _perfil(BuildContext context) {
 
           const Text(
             'Ver perfil',
-            style: TextStyle(color: Colors.blue, fontSize: 14),
+            style: TextStyle(color: Colors.blue, fontSize: 14, fontFamily: 'Arial'),
           ),
         ],
       ),
@@ -134,7 +134,8 @@ Widget _opcion(
     child: ListTile(
       key: Key(keyName),
       leading: Icon(icono),
-      title: Text(texto),
+      title: Text(texto, style: const TextStyle(fontFamily: 'Arial'),),
+      
 
       onTap: () {
         Navigator.pop(context);

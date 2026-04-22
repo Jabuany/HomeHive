@@ -26,6 +26,7 @@ class MiTema {
     return ThemeData(
       useMaterial3: true,
       scaffoldBackgroundColor: lilaFondo, // Usamos el lila de las solicitudes como fondo base
+      fontFamily: 'Arial',
 
       colorScheme: ColorScheme.light(
         primary: azulPrincipal,
@@ -43,7 +44,8 @@ class MiTema {
         titleTextStyle: TextStyle(
           color: Colors.black, 
           fontWeight: FontWeight.bold, 
-          fontSize: 24
+          fontFamily: 'Arial',
+          fontSize: 24,
         ),
       ),
 

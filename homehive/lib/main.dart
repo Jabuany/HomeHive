@@ -17,7 +17,7 @@ import 'package:homehive/main/mis_pagos.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
-  print("📩 Mensaje en background: ${message.notification?.title}");
+  print("Mensaje en background: ${message.notification?.title}");
 }
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -30,6 +30,7 @@ void main() async {
 
   await Firebase.initializeApp();
   await FirebaseMessaging.instance.requestPermission();
+  FirebaseMessaging.instance.subscribeToTopic('propiedades');
 
   channel = const AndroidNotificationChannel(
     'channel_id',
