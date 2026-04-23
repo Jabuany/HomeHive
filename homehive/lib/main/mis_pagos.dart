@@ -1,4 +1,4 @@
-import 'dart:io';
+// import 'dart:io';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -142,7 +142,17 @@ class _MisPagosPageState extends State<MisPagosPage> {
       backgroundColor: MiTema.lilaFondo,
       drawer: menu(context),
       appBar: AppBar(
-        title: const Text('HomeHive'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/logosnf.png', height: 50),
+            const SizedBox(width: 8),
+            const Text(
+              "HomeHive",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),

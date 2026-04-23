@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:homehive/theme/tema.dart';
-import 'package:homehive/main/FiltroPage.dart'; 
 
 final TextEditingController desdeController = TextEditingController();
 final TextEditingController hastaController = TextEditingController();
+String? tipoSeleccionado;
 
 Drawer filtro(BuildContext context) {
   return Drawer(
@@ -65,17 +65,12 @@ Drawer filtro(BuildContext context) {
                   String precioMin = desdeController.text;
                   String precioMax = hastaController.text;
 
-                  Navigator.pop(context);
 
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => FiltroPage(
-                        min: precioMin,
-                        max: precioMax,
-                      ),
-                    ),
-                  );
+                  Navigator.pop(context, {
+                    "min": precioMin,
+                    "max": precioMax,
+                    "tipo": tipoSeleccionado,
+                  });
                 },
                 child: const Text('Filtrar', style: TextStyle(fontSize: 18, color: Colors.white)),
               ),
@@ -118,10 +113,13 @@ Widget _botonTipo(String texto) {
     height: 45,
     child: ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: const Color(0xFF0B5D46),
+        backgroundColor: tipoSeleccionado == texto
+            ? MiTema.azulPrincipal
+            : const Color(0xFF0B5D46),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
       ),
       onPressed: () {
+        tipoSeleccionado = texto;
       },
       child: Text(texto, style: const TextStyle(color: Colors.white)),
     ),
