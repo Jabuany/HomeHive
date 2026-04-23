@@ -187,4 +187,19 @@ class UserService {
     }
   }
 
+  static Future<Map<String, dynamic>?> getUser() async {
+    final token = await obtenerToken();
+
+    final response = await http.get(
+      Uri.parse('$baseUrl/user'),
+      headers: {'Authorization': 'Bearer $token', 'Accept': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    }
+
+    return null;
+  }
+
 }

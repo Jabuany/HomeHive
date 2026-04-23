@@ -4,20 +4,36 @@ import 'package:homehive/inquilino/favoritos.dart';
 import 'package:homehive/main/listchat.dart';
 import 'package:homehive/main/mainPage.dart';
 import 'package:homehive/main/solicitudes.dart';
+import 'package:homehive/main/vermas.dart';
 import 'package:homehive/propietario/mispropiedades.dart';
 import 'package:homehive/services/users.dart';
 import 'package:homehive/views/notificaciones_solicitudes.dart';
 import 'package:app_links/app_links.dart';
 import 'package:homehive/views/perfil.dart';
 import 'theme/tema.dart';
+import 'dart:convert';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:homehive/main/mis_pagos.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
   print("Mensaje en background: ${message.notification?.title}");
+}
+
+
+Future<void> initSesion() async {
+  await UserService.obtenerToken();
+  await UserService.obtenerUsuarioLocal();
+}
+
+Future<bool> haySesion() async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token');
+
+  return token != null && token.isNotEmpty;
 }
 
 final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
@@ -25,8 +41,12 @@ final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin =
 
 late AndroidNotificationChannel channel;
 
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await initSesion();
 
   await Firebase.initializeApp();
   await FirebaseMessaging.instance.requestPermission();
@@ -52,9 +72,31 @@ void main() async {
     const InitializationSettings(
       android: AndroidInitializationSettings('@mipmap/ic_launcher'),
     ),
+    onDidReceiveNotificationResponse: (response) {
+      final payload = response.payload;
+
+      if (payload != null) {
+        print("CLICK EN NOTIFICACIÓN: $payload");
+
+        final data = jsonDecode(payload);
+
+        final type = data['type'];
+        final id = data['id'];
+
+        if (type == 'propiedad') {
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(builder: (_) => VerMas(prop: id)),
+          );
+        } else if (type == 'solicitud') {
+          navigatorKey.currentState?.pushNamed('/notificaciones');
+        } else if (type == 'chat') {
+          navigatorKey.currentState?.pushNamed('/listerchat', arguments: id);
+        }
+      }
+    },
   );
 
-FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
     final data = message.data;
 
     final title = (data['title'] ?? '').toString().isNotEmpty
@@ -77,6 +119,7 @@ FirebaseMessaging.onMessage.listen((RemoteMessage message) {
           priority: Priority.high,
         ),
       ),
+      payload: jsonEncode(data),
     );
   });
 
@@ -89,10 +132,26 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: MiTema.temaApp(context),
       title: 'HomeHive',
-      home: const Login(),
+      home: FutureBuilder<bool>(
+        future: haySesion(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (snapshot.data == true) {
+            return const MainPage();
+          } else {
+            return const Login();
+          }
+        },
+      ),
       routes: {
         '/login': (context) => const Login(),
         '/inicio': (context) => const MainPage(),
@@ -160,10 +219,6 @@ class _LoginState extends State<Login> {
     try {
       await UserService.login(email, password);
 
-      final userActualizado = await UserService.obtenerUsuarioLocal();
-
-      print("USER ACTUALIZADO: $userActualizado");
-
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Inicio de sesión exitoso'),
@@ -173,7 +228,6 @@ class _LoginState extends State<Login> {
 
       Navigator.of(context).pushReplacementNamed('/inicio');
     } catch (e) {
-      print("ERROR: $e");
       _mostrarError('Credenciales incorrectas o error de conexión');
     } finally {
       setState(() {
