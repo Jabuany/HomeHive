@@ -233,6 +233,10 @@ class _MisPagosPageState extends State<MisPagosPage> {
     String titulo = pago['propiedad']?['titulo'] ?? 'Pago de Renta';
     String monto = "\$${pago['monto']}";
     String fecha = pago['fecha_pago'] ?? pago['created_at'].toString().split('T')[0];
+    
+    // Convertimos el estatus a minúsculas para comparar de forma segura
+    String estatus = (pago['status'] ?? 'pendiente').toString().toLowerCase();
+    bool esPagado = estatus == 'pagado' || estatus == 'completed' || estatus == 'success';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -262,33 +266,51 @@ class _MisPagosPageState extends State<MisPagosPage> {
           const Divider(height: 25),
           Column(
             children: [
-              const Align(
+              // Texto de estatus dinámico
+              Align(
                 alignment: Alignment.centerLeft,
-                child: Text("Estatus: Pagado", 
-                  style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: MiTema.indigoIconos),
-                      onPressed: () => _descargarDocumento(pago['id'], 'recibo'),
-                      icon: const Icon(Icons.receipt_long, size: 18, color: Colors.white),
-                      label: const Text("Recibo", style: TextStyle(color: Colors.white, fontSize: 11)),
-                    ),
+                child: Text(
+                  esPagado ? "Estatus: Pagado" : "Estatus: Pendiente de pago", 
+                  style: TextStyle(
+                    color: esPagado ? Colors.green : Colors.orange, 
+                    fontWeight: FontWeight.bold
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(backgroundColor: MiTema.azulPrincipal),
-                      onPressed: () => _descargarDocumento(pago['id'], 'contrato'),
-                      icon: const Icon(Icons.description, size: 18, color: Colors.white),
-                      label: const Text("Contrato", style: TextStyle(color: Colors.white, fontSize: 11)),
-                    ),
-                  ),
-                ],
+                ),
               ),
+              
+              if (esPagado) ...[
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: MiTema.indigoIconos),
+                        onPressed: () => _descargarDocumento(pago['id'], 'recibo'),
+                        icon: const Icon(Icons.receipt_long, size: 18, color: Colors.white),
+                        label: const Text("Recibo", style: TextStyle(color: Colors.white, fontSize: 11)),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(backgroundColor: MiTema.azulPrincipal),
+                        onPressed: () => _descargarDocumento(pago['id'], 'contrato'),
+                        icon: const Icon(Icons.description, size: 18, color: Colors.white),
+                        label: const Text("Contrato", style: TextStyle(color: Colors.white, fontSize: 11)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              
+              if (!esPagado) 
+                const Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    "Los documentos estarán disponibles una vez se confirme el pago.",
+                    style: TextStyle(fontSize: 10, color: Colors.grey, fontStyle: FontStyle.italic),
+                  ),
+                ),
             ],
           )
         ],

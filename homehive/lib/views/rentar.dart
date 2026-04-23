@@ -24,6 +24,21 @@ class _RentarState extends State<Rentar> {
 
   bool _enviando = false;
 
+  Future<void> _seleccionarFecha(BuildContext context) async {
+    DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime(2030),
+    );
+
+    if (picked != null) {
+      setState(() {
+        _fechaController.text = "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
+      });
+    }
+  }
+
   Future<void> _enviarSolicitud() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _enviando = true);
@@ -32,9 +47,6 @@ class _RentarState extends State<Rentar> {
       final url = Uri.parse('${Config.baseUrl}/api/solicitudes/${widget.prop['id']}');
       final token = await UserService.obtenerToken();
       
-      // DEBUG: Imprime esto en tu consola para ver si el ID es correcto
-      print("Enviando solicitud a la propiedad ID: ${widget.prop['id']}");
-
       final response = await http.post(
         url,
         headers: {
@@ -42,18 +54,14 @@ class _RentarState extends State<Rentar> {
           'Accept': 'application/json',
         },
         body: {
-          // IMPORTANTE: Estos nombres deben ser igualitos a tu controlador de Laravel
           'curp': _curpController.text,
           'edad': _edadController.text,
           'ocupacion': _ocupacionController.text,
-          'fecha': _fechaController.text, // Cambiado de 'fecha_mudanza' a 'fecha'
+          'fecha': _fechaController.text,
           'telefono': _telefonoController.text,
           'mensaje': _mensajeController.text,
         },
       );
-
-      print("Respuesta del servidor: ${response.statusCode}");
-      print("Cuerpo de respuesta: ${response.body}");
 
       if (response.statusCode == 201 || response.statusCode == 200) {
         if (!mounted) return;
@@ -65,11 +73,9 @@ class _RentarState extends State<Rentar> {
           MaterialPageRoute(builder: (context) => const MisSolicitudesPage()),
         );
       } else {
-        // Si el servidor responde pero con error (ej. 422 o 500)
-        throw Exception("Error del servidor: ${response.statusCode}");
+        throw Exception("Error");
       }
     } catch (e) {
-      print("Error detallado: $e");
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Error al conectar con el servidor")),
       );
@@ -92,7 +98,22 @@ class _RentarState extends State<Rentar> {
               _campoTexto("Curp", _curpController),
               _campoTexto("Edad", _edadController, keyboardType: TextInputType.number),
               _campoTexto("Ocupación", _ocupacionController),
-              _campoTexto("Fecha (AAAA-MM-DD)", _fechaController, hint: "2026-05-15"),
+              
+              Padding(
+                padding: const EdgeInsets.only(bottom: 15),
+                child: TextFormField(
+                  controller: _fechaController,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: "Fecha (AAAA-MM-DD)",
+                    hintText: "2026-05-15",
+                    border: OutlineInputBorder(),
+                  ),
+                  onTap: () => _seleccionarFecha(context),
+                  validator: (value) => value!.isEmpty ? "Este campo es obligatorio" : null,
+                ),
+              ),
+
               _campoTexto("Teléfono", _telefonoController, keyboardType: TextInputType.phone),
               _campoTexto("Mensaje", _mensajeController, maxLines: 3),
               const SizedBox(height: 30),

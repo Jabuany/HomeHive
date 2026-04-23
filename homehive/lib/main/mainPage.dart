@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:homehive/config/config.dart';
 import 'package:homehive/main.dart';
@@ -51,21 +52,37 @@ class _MainPageState extends State<MainPage> {
   Map<String, dynamic>? user;
   List<dynamic> propiedades = [];
   Map<int, bool> favoritosEstado = {};
+  Timer? _refreshTimer;
+
   @override
   void initState() {
     super.initState();
-     _futurePropiedades = PropiedadService.getPropiedades();
+    _futurePropiedades = PropiedadService.getPropiedades();
     cargarDatos();
     cargarUsuario();
 
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("Notificación en foreground");
-
-      if (message.notification != null) {
-        print("Título: ${message.notification!.title}");
-        print("Body: ${message.notification!.body}");
-      }
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      _handleRefresh();
     });
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      _handleRefresh();
+    });
+  }
+
+  @override
+  void dispose() {
+    _refreshTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _handleRefresh() async {
+    if (mounted) {
+      setState(() {
+        _futurePropiedades = PropiedadService.getPropiedades();
+      });
+      await cargarDatos();
+    }
   }
 
   Future<void> cargarDatos() async {
@@ -78,17 +95,17 @@ class _MainPageState extends State<MainPage> {
       favMap[f['id']] = true;
     }
 
-    setState(() {
-      propiedades = props;
-      favoritosEstado = favMap;
-    });
+    if (mounted) {
+      setState(() {
+        propiedades = props;
+        favoritosEstado = favMap;
+      });
+    }
   }
 
   Future<void> cargarUsuario() async {
     final data = await UserService.obtenerUsuarioLocal();
-
     if (!mounted) return;
-
     setState(() {
       user = data;
     });
@@ -124,61 +141,55 @@ class _MainPageState extends State<MainPage> {
           SizedBox(width: 20),
         ],
       ),
-
       drawer: Builder(builder: (context) => menu(context)),
-
       endDrawer: Builder(builder: (context) => filtro(context)),
+      body: RefreshIndicator(
+        onRefresh: _handleRefresh,
+        color: MiTema.azulPrincipal,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: FutureBuilder<List<dynamic>>(
+                future: _futurePropiedades,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Padding(
-            padding: const EdgeInsets.all(10),
-            child: FutureBuilder<List<dynamic>>(
-              future: _futurePropiedades,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+                  if (snapshot.hasError) {
+                    return Center(
+                      child: Text(
+                        snapshot.error.toString(),
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    );
+                  }
 
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Text(
-                      snapshot.error.toString(),
-                      style: const TextStyle(color: Colors.red),
-                    ),
+                  if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                    return const Center(child: Text('No hay datos'));
+                  }
+
+                  final lista = snapshot.data!;
+
+                  final cuartos = lista.where((p) => p['tipo'] == 'cuarto').toList();
+                  final casas = lista.where((p) => p['tipo'] == 'casa').toList();
+                  final departamentos = lista.where((p) => p['tipo'] == 'departamento').toList();
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _searchBar(),
+                      const SizedBox(height: 25),
+                      _seccionpropiedades("Cuartos", cuartos),
+                      _seccionpropiedades("Casas", casas),
+                      _seccionpropiedades("Departamentos", departamentos),
+                    ],
                   );
-                }
-
-                if (!snapshot.hasData) {
-                  return const Center(child: Text('No hay datos'));
-                }
-
-                final propiedades = snapshot.data!;
-
-                final cuartos = propiedades
-                    .where((p) => p['tipo'] == 'cuarto')
-                    .toList();
-
-                final casas = propiedades
-                    .where((p) => p['tipo'] == 'casa')
-                    .toList();
-
-                final departamentos = propiedades
-                    .where((p) => p['tipo'] == 'departamento')
-                    .toList();
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _searchBar(),
-                    const SizedBox(height: 25),
-                    _seccionpropiedades("Cuartos", cuartos),
-                    _seccionpropiedades("Casas", casas),
-                    _seccionpropiedades("Departamentos", departamentos),
-                  ],
-                );
-              },
+                },
+              ),
             ),
           ),
         ),
@@ -210,7 +221,7 @@ class _MainPageState extends State<MainPage> {
           IconButton(
             icon: const Icon(Icons.filter_list, color: MiTema.textamarillo),
             onPressed: () {
-              filtro(context);
+              Scaffold.of(context).openEndDrawer();
             },
           ),
         ],
@@ -232,7 +243,7 @@ class _MainPageState extends State<MainPage> {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(25),
                 ),
-                child: prop['imagenes'] != null
+                child: prop['imagenes'] != null && prop['imagenes'].isNotEmpty
                     ? Image.network(
                         "${Config.baseUrl}/storage/${prop['imagenes'][0]['ruta']}",
                         height: 160,
@@ -258,13 +269,11 @@ class _MainPageState extends State<MainPage> {
                   child: GestureDetector(
                     onTap: () async {
                       bool esFav = favoritosEstado[prop['id']] == true;
-
                       if (esFav) {
                         await FavoritoService.eliminarFavorito(prop['id']);
                       } else {
                         await FavoritoService.agregarFavorito(prop['id']);
                       }
-
                       setState(() {
                         favoritosEstado[prop['id']] = !esFav;
                       });
@@ -303,7 +312,7 @@ class _MainPageState extends State<MainPage> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  'Barrio: ${prop["barrio"]?["nombre"]}, ${prop["calle"]}',
+                  'Barrio: ${prop["barrio"]?["nombre"] ?? 'N/A'}, ${prop["calle"] ?? ''}',
                   style: const TextStyle(
                     fontSize: 14,
                     color: MiTema.textamarillo,
@@ -366,16 +375,5 @@ class _MainPageState extends State<MainPage> {
         ),
       ],
     );
-  }
-
-  void configurarNotificaciones() {
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      print("Mensaje recibido en foreground");
-
-      if (message.notification != null) {
-        print("Título: ${message.notification!.title}");
-        print("Body: ${message.notification!.body}");
-      }
-    });
   }
 }

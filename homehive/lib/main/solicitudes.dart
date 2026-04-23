@@ -36,7 +36,6 @@ class _MisSolicitudesPageState extends State<MisSolicitudesPage> {
     await _obtenerSolicitudesReales();
   }
 
-  // Abre el selector de fecha nativo
   Future<void> _abrirCalendario(BuildContext context, bool esDesde) async {
     final DateTime? picked = await showDatePicker(
       context: context,
@@ -58,7 +57,6 @@ class _MisSolicitudesPageState extends State<MisSolicitudesPage> {
     }
   }
 
-  // Obtiene las solicitudes filtradas por fecha
   Future<void> _obtenerSolicitudesReales() async {
     setState(() => _cargando = true);
     try {
@@ -110,7 +108,6 @@ class _MisSolicitudesPageState extends State<MisSolicitudesPage> {
         final data = jsonDecode(res.body);
         final String stripeUrl = data['url'];
 
-        // 3. EN LUGAR DE ABRIR NAVEGADOR EXTERNO, ABRIMOS NUESTRO WEBVIEW
         final bool? pagado = await Navigator.push(
           context,
           MaterialPageRoute(
@@ -118,7 +115,6 @@ class _MisSolicitudesPageState extends State<MisSolicitudesPage> {
           ),
         );
 
-        // 4. SI REGRESÓ CON 'TRUE' (Detectado por el interceptor de URL), REFRESCAMOS
         if (pagado == true) {
           _notificar("¡Pago realizado con éxito!");
           _obtenerSolicitudesReales(); 
@@ -294,9 +290,19 @@ class _MisSolicitudesPageState extends State<MisSolicitudesPage> {
   }
 
   Widget _cardInquilino(dynamic sol) {
+    print("DEBUG: Solicitud ID: ${sol['id']} | Pago Data: ${sol['pago']}");
     String nombreProp = sol['propiedad'] is Map ? (sol['propiedad']['titulo'] ?? 'Sin título') : sol['propiedad'].toString();
     String fecha = sol['created_at']?.toString().split('T')[0] ?? 'N/A';
+    
     bool esAceptada = sol['estatus'].toString().toLowerCase() == 'aceptado';
+
+    bool yaEstaPagado = false;
+    if (sol['pago'] != null) {
+      String statusPago = sol['pago']['status'].toString().toLowerCase();
+      if (statusPago == 'pagado' || statusPago == 'completed' || statusPago == 'success') {
+        yaEstaPagado = true;
+      }
+    }
 
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
@@ -332,12 +338,22 @@ class _MisSolicitudesPageState extends State<MisSolicitudesPage> {
                 },
                 child: const Text("Ver solicitud", style: TextStyle(color: Colors.white)),
               ),
-              if (esAceptada)
+
+              if (esAceptada && !yaEstaPagado)
                 ElevatedButton.icon(
                   style: ElevatedButton.styleFrom(backgroundColor: MiTema.indigoIconos),
                   icon: const Icon(Icons.payment, color: Colors.white, size: 18),
                   label: const Text("Pagar", style: TextStyle(color: Colors.white)),
                   onPressed: () => _procesarPago(sol['id']), 
+                ),
+              
+              if (yaEstaPagado)
+                Row(
+                  children: [
+                    const Icon(Icons.check_circle, color: Colors.green),
+                    const SizedBox(width: 5),
+                    const Text("Pagado", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  ],
                 ),
             ],
           ),
