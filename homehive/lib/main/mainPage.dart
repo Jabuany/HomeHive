@@ -1,15 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:homehive/config/config.dart';
+import 'package:homehive/main.dart';
 import 'package:homehive/menu/filtro.dart';
 import 'package:homehive/menu/menu.dart';
+import 'package:homehive/services/favorito_service.dart';
 import 'package:homehive/services/propserv.dart';
+import 'package:homehive/services/users.dart';
 import 'package:homehive/theme/tema.dart';
 import 'package:homehive/main/vermas.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
-  
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +19,22 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'HomeHive',
       theme: MiTema.temaApp(context),
-      home: const MainPage(),
+      home: FutureBuilder<bool>(
+        future: haySesion(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Scaffold(
+              body: Center(child: CircularProgressIndicator()),
+            );
+          }
+
+          if (snapshot.data == true) {
+            return const MainPage();
+          } else {
+            return const Login();
+          }
+        },
+      ),
     );
   }
 }
@@ -27,13 +44,19 @@ class MainPage extends StatefulWidget {
 
   @override
   State<MainPage> createState() => _MainPageState();
-  
 }
 
 class _MainPageState extends State<MainPage> {
+  late Future<List<dynamic>> _futurePropiedades;
+  Map<String, dynamic>? user;
+  List<dynamic> propiedades = [];
+  Map<int, bool> favoritosEstado = {};
   @override
   void initState() {
     super.initState();
+     _futurePropiedades = PropiedadService.getPropiedades();
+    cargarDatos();
+    cargarUsuario();
 
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("Notificación en foreground");
@@ -42,6 +65,32 @@ class _MainPageState extends State<MainPage> {
         print("Título: ${message.notification!.title}");
         print("Body: ${message.notification!.body}");
       }
+    });
+  }
+
+  Future<void> cargarDatos() async {
+    final props = await PropiedadService.getPropiedades();
+    final favs = await FavoritoService.obtenerFavoritos();
+
+    Map<int, bool> favMap = {};
+
+    for (var f in favs) {
+      favMap[f['id']] = true;
+    }
+
+    setState(() {
+      propiedades = props;
+      favoritosEstado = favMap;
+    });
+  }
+
+  Future<void> cargarUsuario() async {
+    final data = await UserService.obtenerUsuarioLocal();
+
+    if (!mounted) return;
+
+    setState(() {
+      user = data;
     });
   }
 
@@ -86,7 +135,7 @@ class _MainPageState extends State<MainPage> {
           child: Padding(
             padding: const EdgeInsets.all(10),
             child: FutureBuilder<List<dynamic>>(
-              future: PropiedadService.getPropiedades(),
+              future: _futurePropiedades,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -161,7 +210,7 @@ class _MainPageState extends State<MainPage> {
           IconButton(
             icon: const Icon(Icons.filter_list, color: MiTema.textamarillo),
             onPressed: () {
-              filtro(context); 
+              filtro(context);
             },
           ),
         ],
@@ -206,9 +255,26 @@ class _MainPageState extends State<MainPage> {
                     color: Colors.white,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
-                    Icons.favorite_border,
-                    color: MiTema.azulPrincipal,
+                  child: GestureDetector(
+                    onTap: () async {
+                      bool esFav = favoritosEstado[prop['id']] == true;
+
+                      if (esFav) {
+                        await FavoritoService.eliminarFavorito(prop['id']);
+                      } else {
+                        await FavoritoService.agregarFavorito(prop['id']);
+                      }
+
+                      setState(() {
+                        favoritosEstado[prop['id']] = !esFav;
+                      });
+                    },
+                    child: Icon(
+                      (favoritosEstado[prop['id']] ?? false)
+                          ? Icons.favorite
+                          : Icons.favorite_border,
+                      color: MiTema.azulPrincipal,
+                    ),
                   ),
                 ),
               ),
@@ -301,6 +367,7 @@ class _MainPageState extends State<MainPage> {
       ],
     );
   }
+
   void configurarNotificaciones() {
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       print("Mensaje recibido en foreground");
