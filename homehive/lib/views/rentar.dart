@@ -88,7 +88,19 @@ class _RentarState extends State<Rentar> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: MiTema.bggris,
-      appBar: AppBar(title: const Text('Rentar Propiedad'), centerTitle: true),
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/logosnf.png', height: 50),
+            const SizedBox(width: 8),
+            const Text(
+              "Rentar Propiedad",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
         child: Form(

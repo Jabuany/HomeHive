@@ -1,8 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:homehive/main/chat.dart';
-import '../services/chat_service.dart';
-import '../services/users.dart';
+import 'package:homehive/services/chat_service.dart';
+import 'package:homehive/services/users.dart';
+import 'package:homehive/theme/tema.dart';
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -53,14 +54,29 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
   @override
   void dispose() {
-    timer?.cancel(); 
+    timer?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Mis chats"), centerTitle: true),
+      backgroundColor: MiTema.lilaFondo,
+
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/logosnf.png', height: 50),
+            const SizedBox(width: 8),
+            const Text(
+              "HomeHive",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+         centerTitle: true),
+
       body: userId == null
           ? const Center(child: CircularProgressIndicator())
           : FutureBuilder<List<dynamic>>(
@@ -76,62 +92,110 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
                 final chats = snapshot.data ?? [];
 
-                if (chats.isEmpty) {
-                  return const Center(child: Text("No tienes conversaciones"));
-                }
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: MiTema.cart,
+                        borderRadius: BorderRadius.circular(25),
+                        boxShadow: const [
+                          BoxShadow(color: Colors.black12, blurRadius: 10),
+                        ],
+                      ),
+                      child: Column(
+                        children: [
+                          const SizedBox(height: 15),
 
-                return RefreshIndicator(
-                  onRefresh: _refresh,
-                  child: ListView.separated(
-                    itemCount: chats.length,
-                    separatorBuilder: (_, __) => const Divider(height: 1),
-                    itemBuilder: (context, index) {
-                      final chat = chats[index];
-
-                      final name =
-                          chat['other_user_name'] ?? chat['name'] ?? "Usuario";
-
-                      return ListTile(
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.blueAccent,
-                          child: Text(
-                            name[0].toUpperCase(),
-                            style: const TextStyle(color: Colors.white),
-                          ),
-                        ),
-
-                        title: Text(
-                          name,
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-
-                        subtitle: Text(
-                          chat['last_message'] ?? "Sin mensajes",
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-
-                        trailing: Text(
-                          chat['updated_at'] != null
-                              ? chat['updated_at'].toString().substring(11, 16)
-                              : "",
-                          style: const TextStyle(fontSize: 12),
-                        ),
-
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => Chat(
-                                conversationId: chat['id'],
-                                otherUserName:
-                                    chat['other_user_name'] ?? 'Usuario',
-                              ),
+                          const Text(
+                            "chat",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w500,
                             ),
-                          );
-                        },
-                      );
-                    },
+                          ),
+
+                          const SizedBox(height: 10),
+
+                          Expanded(
+                            child: chats.isEmpty
+                                ? const Center(
+                                    child: Text("No tienes conversaciones"),
+                                  )
+                                : RefreshIndicator(
+                                    onRefresh: _refresh,
+                                    child: ListView.builder(
+                                      itemCount: chats.length,
+                                      itemBuilder: (context, index) {
+                                        final chat = chats[index];
+
+                                        final name =
+                                            chat['other_user_name'] ??
+                                            chat['name'] ??
+                                            "Usuario";
+
+                                        return Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
+                                          ),
+                                          child: Row(
+                                            children: [
+                                              // Avatar
+                                              CircleAvatar(
+                                                radius: 24,
+                                                backgroundColor: MiTema.gris,
+                                                child: Text(
+                                                  name[0].toUpperCase(),
+                                                  style: const TextStyle(
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ),
+
+                                              const SizedBox(width: 12),
+
+                                              // Nombre
+                                              Expanded(
+                                                child: Text(
+                                                  name,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                ),
+                                              ),
+
+                                              // Botón chat
+                                              IconButton(
+                                                icon: const Icon(
+                                                  Icons.chat_bubble_outline,
+                                                ),
+                                                color: MiTema.indigoIconos,
+                                                onPressed: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                      builder: (_) => Chat(
+                                                        conversationId:
+                                                            chat['id'],
+                                                        otherUserName: name,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                          ),
+
+                          const SizedBox(height: 10),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },

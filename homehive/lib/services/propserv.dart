@@ -69,4 +69,34 @@ class PropiedadService {
       return {"ok": false, "data": data};
     }
   }
+
+  static Future<List<dynamic>> filtrar({
+    String? min,
+    String? max,
+    String? tipo,
+  }) async {
+    try {
+      final queryParams = {
+        if (min != null && min.isNotEmpty) 'min': min,
+        if (max != null && max.isNotEmpty) 'max': max,
+        if (tipo != null && tipo.isNotEmpty) 'tipo': tipo,
+      };
+
+      final uri = Uri.parse(
+        "${Config.baseUrl}/api/propiedades",
+      ).replace(queryParameters: queryParams);
+
+      final response = await http.get(uri);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['propiedades'] ?? [];
+      } else {
+        throw Exception('Error al filtrar propiedades');
+      }
+    } catch (e) {
+      print("Error filtro: $e");
+      return [];
+    }
+  }
 }

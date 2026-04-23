@@ -26,11 +26,6 @@ Drawer menu(BuildContext context) {
         }, "menu_chat"),
 
         if (UserService.currentUser?['role'] == 'inquilino')
-          _opcion(context, Icons.help, 'Ayuda', () {
-            Navigator.of(context).pushNamed('/');
-          }, 'menu_ayuda'),
-
-        if (UserService.currentUser?['role'] == 'inquilino')
           _opcion(context, Icons.favorite, 'Favoritos', () {
             Navigator.of(context).pushNamed('/favoritos');
           }, 'menu_favoritos'),

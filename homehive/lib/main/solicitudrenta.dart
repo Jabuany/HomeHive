@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:homehive/theme/tema.dart';
+// import 'package:homehive/theme/tema.dart';
 import 'package:homehive/config/config.dart';
 import 'package:homehive/services/users.dart';
 
@@ -82,8 +82,17 @@ class _DetalleSolicitudPageState extends State<DetalleSolicitudPage> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text('HomeHive', 
-          style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 24)),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/logosnf.png', height: 50),
+            const SizedBox(width: 8),
+            const Text(
+              "HomeHive",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         centerTitle: true,
       ),
       body: _procesando 
@@ -104,6 +113,8 @@ class _DetalleSolicitudPageState extends State<DetalleSolicitudPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Image.asset('assets/logosnf.png', height: 50),
+
                         const Text("Solicitud de renta", 
                           style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                         Container(

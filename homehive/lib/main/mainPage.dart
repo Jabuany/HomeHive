@@ -129,12 +129,22 @@ class _MainPageState extends State<MainPage> {
         ),
         elevation: 0,
         centerTitle: true,
-        title: const Text(
-          'HomeHive',
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: MiTema.textPrimary,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'assets/logosnf.png', 
+              height: 50,
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              'HomeHive',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: MiTema.textPrimary,
+              ),
+            ),
+          ],
         ),
         actions: const [
           Icon(Icons.notifications_none, color: MiTema.textPrimary),

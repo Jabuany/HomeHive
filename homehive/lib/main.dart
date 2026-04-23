@@ -258,6 +258,8 @@ class _LoginState extends State<Login> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        Image.asset('assets/logosnf.png', height: 110),
+
         const Text(
           'HomeHive',
           style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold),

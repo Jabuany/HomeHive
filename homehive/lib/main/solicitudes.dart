@@ -6,7 +6,7 @@ import 'package:homehive/config/config.dart';
 import 'package:homehive/services/users.dart';
 import 'package:homehive/main/solicitudrenta.dart'; 
 import 'package:homehive/menu/menu.dart'; 
-import 'package:url_launcher/url_launcher.dart';
+// import 'package:url_launcher/url_launcher.dart';
 // 1. IMPORTA TU NUEVA VISTA DE PAGO (Asegúrate de que la ruta sea correcta)
 import 'package:homehive/inquilino/pagos.dart'; 
 
@@ -143,7 +143,17 @@ class _MisSolicitudesPageState extends State<MisSolicitudesPage> {
       backgroundColor: MiTema.lilaFondo, 
       drawer: menu(context), 
       appBar: AppBar(
-        title: const Text('HomeHive'),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/logosnf.png', height: 50),
+            const SizedBox(width: 8),
+            const Text(
+              "HomeHive",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
         leading: Builder(
           builder: (context) => IconButton(
             icon: const Icon(Icons.menu),

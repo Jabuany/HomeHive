@@ -85,25 +85,80 @@ class _VerMasState extends State<VerMas> {
     bool esPropietario = UserService.currentUser?['role'] == 'propietario';
 
     return Scaffold(
-      floatingActionButton: (!esPropietario)
-          ? FloatingActionButton.extended(
-              backgroundColor: MiTema.azulPrincipal,
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => Rentar(prop: prop), // 'prop' es el objeto de la propiedad actual
+      bottomNavigationBar: (!esPropietario)
+          ? SafeArea(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                child: SizedBox(
+                  height: 55,
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: MiTema.azulPrincipal,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => Rentar(prop: prop)),
+                      );
+                    },
+                    icon: const Icon(Icons.home, color: Colors.white),
+                    label: const Text(
+                      'Solicitar renta',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
-                );
-              },
-              label: const Text(
-                'Solicitar renta',
-                style: TextStyle(color: Colors.white),
+                ),
               ),
-              icon: const Icon(Icons.home, color: Colors.white),
             )
           : null,
-      appBar: AppBar(title: const Text('HomeHive'), centerTitle: true),
+
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(
+          bottom: 75,
+        ), 
+        child: FloatingActionButton(
+          backgroundColor: Colors.black,
+          onPressed: () async {
+            final user = await UserService.obtenerUsuarioLocal();
+
+            final conversation = await ChatService.createOrGetConversation(
+              userOneId: user!['id'],
+              userTwoId: widget.prop['user_id'],
+              propertyId: widget.prop['id'],
+            );
+
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => Chat(
+                  conversationId: conversation['id'],
+                  otherUserName:
+                      widget.prop['usuario']?['name'] ?? 'Propietario',
+                ),
+              ),
+            );
+          },
+          child: const Icon(Icons.chat, color: Colors.white),
+        ),
+      ),
+          
+
+      appBar: AppBar(
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('assets/logosnf.png', height: 50),
+            const SizedBox(width: 8),
+            const Text(
+              "HomeHive",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ), 
+        centerTitle: true),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(12),
         child: Card(
@@ -167,41 +222,7 @@ class _VerMasState extends State<VerMas> {
 
                     const SizedBox(height: 10),
 
-                    ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: MiTema.azulPrincipal,
-                        padding: const EdgeInsets.symmetric(
-                          vertical: 12,
-                          horizontal: 16,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      icon: const Icon(Icons.chat, color: Colors.white),
-                      label: const Text(
-                        "Contactar propietario",
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      onPressed: () async {
-                        final user = await UserService.obtenerUsuarioLocal();
-
-                        final conversation =
-                            await ChatService.createOrGetConversation(
-                              userOneId: user!['id'],
-                              userTwoId: widget
-                                  .prop['user_id'],
-                              propertyId: widget.prop['id'],
-                            );
-
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => Chat(conversationId: conversation['id'], otherUserName: widget.prop['usuario']?['name'] ?? 'Propietario'),
-                          ),
-                        );
-                      },
-                    ),
+                    
 
                     // secciones
                     _seccion('Descripción', prop['descripcion'] ?? ''),
