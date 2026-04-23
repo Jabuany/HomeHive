@@ -61,7 +61,7 @@ class _MainPageState extends State<MainPage> {
     cargarDatos();
     cargarUsuario();
 
-    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+    _refreshTimer = Timer.periodic(const Duration(seconds: 300), (timer) {
       _handleRefresh();
     });
 
